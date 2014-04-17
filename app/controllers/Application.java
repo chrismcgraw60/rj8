@@ -16,15 +16,15 @@ public class Application extends Controller {
     }
 
     public static Result syncFoo() {
-        return ok("sync foo_bar_oo");
+        return ok("sync foo_bar_ooB [CHRIS]");
     }
 
     public static F.Promise<Result> asyncFoo() {
-        return F.Promise.promise(() -> ok("async foo"));
+        return F.Promise.promise(() -> ok("async foo [CHRIS]"));
     }
 
     public static F.Promise<Result> asyncNonBlockingFoo() {
-        return F.Promise.delayed(() -> ok("async non-blocking foo"), 5, TimeUnit.SECONDS);
+        return F.Promise.delayed(() -> ok("async non-blocking foo [CHRIS]"), 5, TimeUnit.SECONDS);
     }
 
     public static F.Promise<Result> reactiveRequest() {
