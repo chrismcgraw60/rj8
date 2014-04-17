@@ -20,7 +20,7 @@ public class Application extends Controller {
     }
 
     public static F.Promise<Result> asyncFoo() {
-        return F.Promise.promise(() -> ok("async foo [CHRIS_]"));
+        return F.Promise.promise(() -> ok("async foo [CHRIS_+++]"));
     }
 
     public static F.Promise<Result> asyncNonBlockingFoo() {
