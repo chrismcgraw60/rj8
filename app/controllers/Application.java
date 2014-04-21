@@ -1,5 +1,11 @@
 package controllers;
 
+import static java.util.stream.Collectors.joining;
+
+import java.util.concurrent.TimeUnit;
+
+import jpa.TestEntry;
+import play.db.jpa.Transactional;
 import play.libs.EventSource;
 import play.libs.F;
 import play.libs.WS;
@@ -7,16 +13,19 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import play.mvc.WebSocket;
 
-import java.util.concurrent.TimeUnit;
-
 public class Application extends Controller {
 
     public static Result index() {
         return ok(views.html.index.render("Hello Play Framework"));
     }
 
+    @Transactional(readOnly=true)
     public static Result syncFoo() {
-        return ok("sync foo_bar_ooB [CHRIS]");
+    	String response = TestEntry.all()
+    						.map(TestEntry::toString)
+    						.collect(joining("\n"));
+    	
+    	return ok(response);
     }
 
     public static F.Promise<Result> asyncFoo() {

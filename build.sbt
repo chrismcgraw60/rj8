@@ -7,8 +7,12 @@ version := "1.0-SNAPSHOT"
 javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
 
 libraryDependencies ++= Seq(
+  javaCore,
+  javaJdbc,
+  javaJpa,
   "org.webjars" %% "webjars-play" % "2.2.0",
-  "org.webjars" % "bootstrap" % "2.3.1")
+  "org.webjars" % "bootstrap" % "2.3.1",
+  "org.hibernate" % "hibernate-entitymanager" % "4.3.5.Final")
 
 playJavaSettings
 
