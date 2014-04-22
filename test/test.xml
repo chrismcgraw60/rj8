@@ -32,7 +32,7 @@
 				<path refid="junit.class.path"/>
 			</classpath>
 			<formatter type="xml" />	
-			<test name="test.AllTests" todir="${results-dir}" />
+			<test name="testdata.AllTests" todir="${results-dir}" />
 		</junit>
 	
 		<junitreport todir="${results-dir}/html">

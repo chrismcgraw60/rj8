@@ -1,4 +1,4 @@
-package test;
+package testdata;
 
 import static org.junit.Assert.*;
 
@@ -7,39 +7,39 @@ import org.junit.Test;
 /**
  * Generates various Types of Junit result to provide data for import.
  */
-public class CreateReportTestA {
+public class CreateReportTestB {
 
 	@Test
-	public void testFailNotImplemented_A() {
+	public void testFailNotImplemented_B() {
 		fail("Not yet implemented");
 	}
 
 	@Test
-	public void testPassAssertionNoComment_A() {
+	public void testPassAssertionNoComment_B() {
 		assertTrue(true);
 	}
 	
 	@Test
-	public void testPassAssertionWithComment_A() {
+	public void testPassAssertionWithComment_B() {
 		assertTrue("This should pass", true);
 	}
 
 	@Test
-	public void testFailAssertionNosComment_A() {
+	public void testFailAssertionNosComment_B() {
 		int expected = 1;
 		int actual = 2;
 		assertEquals(expected,  actual);
 	}
 	
 	@Test
-	public void testFailAssertionWithComment_A() {
+	public void testFailAssertionWithComment_B() {
 		int expected = 1;
 		int actual = 2;
 		assertEquals("Numbers should be equal.", expected,  actual);
 	}
 	
 	@Test
-	public void testException_A() {
+	public void testException_B() {
 		doSomethingWrong();
 	}
 	
