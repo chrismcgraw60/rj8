@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	This build file will run a suite of Junit tests. The tests themselves are dummys designed 
+	to provide the various types of output that a Junit test can give. The intention is to take
+	the test output and use it as a test datasource for our database import steps.  
+-->
+<project name="Tests" default="junit" basedir=".">
+
+	<!-- Define the classpath which includes the junit.jar and the classes after compiling-->
+	<path id="junit.class.path">
+		<pathelement location="/home/chrismcgraw60/.ivy2/cache/junit/junit/jars/junit-4.10.jar" />
+		<pathelement location="${basedir}/../.target" />
+	</path>
+	
+	<!--
+		Build a folder structure that will contain generated junit output files.
+		We'll use these files in our testing. This folder tree is not version-controlled.
+	-->
+	<property name="results-dir" value="${basedir}/ant-test-results" />
+	<target name="clean">
+		<delete dir="${results-dir}"/>
+		<mkdir dir="${results-dir}"/>
+		<mkdir dir="${results-dir}/html"/>
+	</target>
+  
+	<!--
+		test.AllTests is a Suite that references of all the TestCases we need to build a dataset.
+	-->
+	<target name="junit" depends="clean">
+		<junit>
+			<classpath>
+				<path refid="junit.class.path"/>
+			</classpath>
+			<formatter type="xml" />	
+			<test name="test.AllTests" todir="${results-dir}" />
+		</junit>
+	
+		<junitreport todir="${results-dir}/html">
+			<fileset dir="${results-dir}">
+				<include name="TEST-*.xml" />
+			</fileset>
+			<!-- Use frames for the HTML report. -->
+			<report styledir="${basedir}/junit-report-xsl" format="frames" todir="${results-dir}/html"/>
+	
+		</junitreport>
+				
+	</target>
+
+</project>
