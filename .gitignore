@@ -17,3 +17,8 @@ dist
 /.settings
 activator-sbt*-shim.sbt
 /setup-activator.sh
+/db
+/setup-env.sh~
+/start-activator.sh~
+/start-h2.sh~
+/setup-activator.sh~

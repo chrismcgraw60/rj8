@@ -10,6 +10,7 @@ libraryDependencies ++= Seq(
   javaCore,
   javaJdbc,
   javaJpa,
+  "org.jooq" % "jool" % "0.9.1",
   "org.webjars" %% "webjars-play" % "2.2.0",
   "org.webjars" % "bootstrap" % "2.3.1",
   "org.hibernate" % "hibernate-entitymanager" % "4.3.5.Final")

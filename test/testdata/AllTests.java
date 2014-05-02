@@ -7,9 +7,11 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(Suite.class)
 @SuiteClasses({ 
 	CreateReportTestA.class,
-	CreateReportTestB.class
+	CreateReportTestB.class,
+	NestedTestSuite.class
 })
 
-public class AllTests {
-
-}
+/**
+ * The root test suite to be run by gen-testData.sh for creating small test report data set. 
+ */
+public class AllTests {}

@@ -1,15 +1,33 @@
 # --- !Ups
 
-create table TESTENTRY (
-  id		bigint not null,
-  title		varchar(255))
-;
+CREATE TABLE TestSuite (
+  id			bigint SERIAL not null,
+  uuid			varchar(64),
+  className		varchar(1024),
+  time			varchar(32),
+  folder		varchar(256),
+  file			varchar(256),
+  timestamp		timestamp,
+  
+  CONSTRAINT testSuiteyPK PRIMARY KEY (id)
+);
 
-insert into testEntry (id, title) values (1, 'testFoo');
-insert into testEntry (id, title) values (2, 'testBar');
-insert into testEntry (id, title) values (3, 'testMinx');
-insert into testEntry (id, title) values (4, 'testManchu');
+CREATE TABLE TestEntry (
+  id			bigint SERIAL not null,
+  uuid			varchar(64),
+  className		varchar(1024),
+  methodName	varchar(1024),
+  time			varchar(32),
+  suite_Id		bigint,
+  
+  CONSTRAINT testEntryPK PRIMARY KEY (id),
+  CONSTRAINT testSuiteFK_integrity CHECK (suite_Id IS NOT NULL),
+  CONSTRAINT testSuiteFK FOREIGN KEY (suite_Id)
+  	REFERENCES TestSuite (id)
+  	ON DELETE CASCADE
+);
 
 # --- !Downs
 
-drop table if exists testEntry;
+DROP TABLE IF EXISTS TestSuite;
+DROP TABLE IF EXISTS TestEntry;
