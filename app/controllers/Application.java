@@ -3,9 +3,7 @@ package controllers;
 import java.sql.ResultSet;
 import java.util.concurrent.TimeUnit;
 
-
 import javax.sql.DataSource;
-
 
 import play.db.DB;
 import play.db.jpa.Transactional;
@@ -13,9 +11,11 @@ import play.libs.EventSource;
 import play.libs.F;
 import play.libs.WS;
 import play.mvc.Controller;
+import play.mvc.Http.Request;
 import play.mvc.Result;
 import play.mvc.WebSocket;
-import query.JdbcQueryService;import query.JsonResulSet;
+import query.JdbcQueryService;
+import query.JsonResulSet;
 
 
 public class Application extends Controller {
@@ -85,6 +85,27 @@ public class Application extends Controller {
 	        		
 	        		out.write(jsonRs.getMetadata());
 	        		jsonRs.rowsAsStream().forEach(out::write);
+            	});
+            }
+        };
+    }
+    
+    public static WebSocket<String> query() {
+    	
+//    	final Request req = request();
+//    	String query = req.body().asText();
+    	
+        return new WebSocket<String>() {
+            public void onReady(final In<String> in, final Out<String> out) {
+            	in.onMessage(sql -> {
+            		
+	            	DataSource ds =  DB.getDataSource();
+	        		ResultSet rs = new JdbcQueryService(ds).runQuery(sql);
+	        		JsonResulSet jsonRs = JsonResulSet.initialiseFrom(rs);
+	        		
+	        		out.write(jsonRs.getMetadata());
+	        		jsonRs.rowsAsStream().forEach(out::write);
+//	        		out.close();
             	});
             }
         };

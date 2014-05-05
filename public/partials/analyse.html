@@ -1,11 +1,21 @@
 <div>
-	<h1>Analysis Page</h1>
-	<p class="lead">
-		SQL and results to go here ...
-		
+	<div class="lead">Analysis</div> 
+	<div>
+		<textarea cols="50" rows="7" data-ng-model="query">{{query}}</textarea>
+		<br/>
+		<button ng-click="runQuery()">Run Query</button>
+	</div>
+	
+	<br/>
+	<hr/>
+	
+	<div>
+		<result-list></result-list>
+	
+		<!-- 
 		<ul>
-			<li data-ng-repeat="row in analysisData.rows">{{row}}</li>
+			<li data-ng-repeat="row in analysisData">{{row}}</li>
 		</ul>
-		
-	</p>
+		 -->
+	</div>
 </div>
