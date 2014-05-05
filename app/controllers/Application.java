@@ -21,7 +21,8 @@ import query.JdbcQueryService;import query.JsonResulSet;
 public class Application extends Controller {
 
     public static Result index() {
-        return ok(views.html.index.render("Spike 1"));
+        //return ok(views.html.index.render("Spike 1"));
+    	return ok(views.html.index.render());
     }
 
     @Transactional(readOnly=true)
