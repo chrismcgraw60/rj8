@@ -17,36 +17,41 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 
 /**
- * TODO: WEB SOCKET
+ * Wraps a JDBC {@link ResultSet} as JSON Strings. There are 2 components:
+ * <ol>
+ * <li> The ResultSet metadata that gives Column name / type information.
+ * <li> The ResultSet data itself.
+ * </ol>
  */
-public class ResultSetJsonAdapter {
+public class JsonResulSet {
 	
 	final ResultSet jdbcResultSet;
 	final Map<String, String> columnMetadata;
 	
-	private ResultSetJsonAdapter(ResultSet jdbcResultSet, Map<String, String> columnMetadata) {
+	/**
+	 * Private constructor. Instances created via {@link JsonResulSet#initialiseFrom(ResultSet)}.
+	 * @param jdbcResultSet The JDBC {@link ResultSet} to be wrapped.
+	 * @param columnMetadata A Map encapsulating the result's Column Name / Type pairs.
+	 */
+	private JsonResulSet(ResultSet jdbcResultSet, Map<String, String> columnMetadata) {
 		this.jdbcResultSet = jdbcResultSet;
 		this.columnMetadata = columnMetadata;
 	}
 	
-	public static ResultSetJsonAdapter initialiseFrom(ResultSet rs) {
+	/**
+	 * Factory method to create a {@link JsonResulSet} from a given JDBC {@link ResultSet}. 
+	 * @param rs The {@link ResultSet} to be wrapped.
+	 * @return The new wrapper {@link JsonResulSet}.
+	 */
+	public static JsonResulSet initialiseFrom(ResultSet rs) {
 		Map<String, String> columnMap = buildColumnMetadataMap(rs);
-		return new ResultSetJsonAdapter(rs, columnMap);
-	}
-
-	private static Map<String, String> buildColumnMetadataMap(ResultSet rs) {
-		Map<String, String> columnMap = Maps.newLinkedHashMap();
-		try {
-			ResultSetMetaData rmd = rs.getMetaData();
-			for (int i=1; i<= rmd.getColumnCount(); i++) {
-				columnMap.put(rmd.getColumnName(i), rmd.getColumnTypeName(i));
-			}
-		} catch (SQLException e) {
-			Throwables.propagate(e);
-		}
-		return columnMap;
+		return new JsonResulSet(rs, columnMap);
 	}
 	
+	/**
+	 * @return the adapted ResultSet Rows as a stream of JSON Strings.
+	 * e.g {row: ["val1", "val2", "val3"]}
+	 */
 	public Stream<String> rowsAsStream() {
 		Stream<String> json = 
 			SQL.stream(this.jdbcResultSet, Unchecked.function(row -> {
@@ -65,6 +70,7 @@ public class ResultSetJsonAdapter {
 	}
 	
 	/**
+	 * Returns the ResultSet metadata as a JSON String.
 	 * @return <p>Json representation of column metadata.</p> 
 	 * e.g { "result" : { columns : [ {"id": "bigint"}. {"name": "varchar"}. {"timestamp": "timestamp"} ] }}  
 	 */
@@ -87,5 +93,27 @@ public class ResultSetJsonAdapter {
 			Throwables.propagate(e);
 		}
 		return null;
+	}
+	
+	/*
+	 * Build the Column Name / Type map from the ResultSet object.
+	 */
+	private static Map<String, String> buildColumnMetadataMap(ResultSet rs) {
+		/*
+		 * LinkedHashmap to preserve key traversal order.
+		 * Important as we output rows as arrays of values where the index position in
+		 * the row implicitly corresponds to the entry order of the column map.
+		 * Reason for this is performance. 
+		 */
+		Map<String, String> columnMap = Maps.newLinkedHashMap();
+		try {
+			ResultSetMetaData rmd = rs.getMetaData();
+			for (int i=1; i<= rmd.getColumnCount(); i++) {
+				columnMap.put(rmd.getColumnName(i), rmd.getColumnTypeName(i));
+			}
+		} catch (SQLException e) {
+			Throwables.propagate(e);
+		}
+		return columnMap;
 	}
 }

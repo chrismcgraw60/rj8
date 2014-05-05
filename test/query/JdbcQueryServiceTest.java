@@ -26,12 +26,11 @@ public class JdbcQueryServiceTest {
 	@Test
 	public void testQuery() throws Exception {
 		String sql = "SELECT * FROM TESTENTRY";
+
+		ResultSet rs = new JdbcQueryService(DS).runQuery(sql);
+		JsonResulSet jsonRs = JsonResulSet.initialiseFrom(rs);
 		
-		ResultSet rs = new JdbcQueryService().runQuery(DS, sql);
-		ResultSetJsonAdapter result = ResultSetJsonAdapter.initialiseFrom(rs);
-		
-		System.out.println(result.getMetadata());
-		
-		result.rowsAsStream().forEach(System.out::println);
+		System.out.println(jsonRs.getMetadata());
+		jsonRs.rowsAsStream().forEach(System.out::println);
 	}
 }

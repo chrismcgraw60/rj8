@@ -11,7 +11,6 @@ $ ->
   # WebSocket
   ws = new WebSocket("ws://localhost:9000/echo")
   ws.onmessage = (message) ->
-    #alert(message.data)
     $("#results").append(message.data)
   $("#websocket-demo").click () ->
-    ws.send("foo")
+    ws.send("SELECT * FROM TESTENTRY")
