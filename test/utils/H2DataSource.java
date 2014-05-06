@@ -11,7 +11,9 @@ public class H2DataSource {
 			Class.forName("org.h2.Driver");
 			BoneCPConfig config = new BoneCPConfig();
 	//		config.setJdbcUrl("jdbc:h2:file:/media/d2/skunk/activator/activator-1.1.0_projects/rj8/db/test-data;MODE=PostgreSQL;DB_CLOSE_DELAY=-1"); 
-			config.setJdbcUrl("jdbc:h2:tcp://localhost:9092/media/d2/skunk/activator/activator-1.1.0_projects/rj8/db/test-data;MODE=PostgreSQL");
+//			config.setJdbcUrl("jdbc:h2:tcp://localhost:9092/media/d2/skunk/activator/activator-1.1.0_projects/rj8/db/test-data;MODE=PostgreSQL");
+			//media/d2/skunk/activator/activator-1.1.0_projects/rj8/db/test-data;MODE=PostgreSQL
+			config.setJdbcUrl("jdbc:h2:tcp://localhost:9092/file:/media/d2/skunk/activator/activator-1.1.0_projects/rj8/db/test-data;MODE=PostgreSQL;");
 			config.setUsername("sa"); 
 			config.setPassword("");
 			config.setLazyInit(true);
