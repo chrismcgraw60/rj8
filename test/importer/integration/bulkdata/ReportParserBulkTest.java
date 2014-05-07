@@ -31,6 +31,7 @@ public class ReportParserBulkTest {
 	@BeforeClass
 	public static void setUp() throws Exception {
 		DS = H2DataSource.create();
+		H2DataSource.clear(DS);
 		bulkTestData = BulkTestReportGenerator.initialiseTestReportStructure();
 	}
 	
@@ -45,6 +46,7 @@ public class ReportParserBulkTest {
 		Integer actualImportedTestResultCount = new ForkJoinPool().submit( () -> {
 				Integer c = 
 					bulkTestFilePaths()
+					.peek(s -> System.out.println(s))
 					.parallel()
 					.map(fp -> ReportParser.parse(fp))
 					.map(tce -> BatchJdbcImporter.doImport(tce, DS, 1000))

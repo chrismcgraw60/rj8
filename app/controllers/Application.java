@@ -11,7 +11,6 @@ import play.libs.EventSource;
 import play.libs.F;
 import play.libs.WS;
 import play.mvc.Controller;
-import play.mvc.Http.Request;
 import play.mvc.Result;
 import play.mvc.WebSocket;
 import query.JdbcQueryService;
