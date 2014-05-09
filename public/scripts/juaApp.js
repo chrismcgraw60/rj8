@@ -17,11 +17,7 @@ juaApp.config(['$routeProvider',
         templateUrl: 'assets/partials/manage.html',
         controller: 'ManageCtrl'
       }).
-      when('/dashboard', {
-          templateUrl: 'assets/partials/dashboard.html',
-          controller: 'ManageCtrl'
-        }).
       otherwise({
-        redirectTo: '/dashboard'
+        redirectTo: '/analyse'
       });
   }]);
