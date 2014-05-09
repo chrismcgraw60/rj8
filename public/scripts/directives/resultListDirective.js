@@ -8,13 +8,13 @@ juaApp.directive('resultList', function(){
 			scope.$on('RESULT_METADATA_ADDED', 
 				function(event, metadata) {
 					if (metadata) {
-						var headerRow = document.createElement("tr");
+						var tr = document.createElement("tr");
 						var columns = metadata.columns;
 						for(var i=0; i<columns.length; i++) {
 							var col = columns[i];
-							$(headerRow).append("<td>" + col.name + "</td>");
+							$(tr).append("<th><h4>" + col.name + "</h4></th>");
 						}
-						$("#resultsGrid").append(headerRow);
+						$("#gridHeader").append(tr);
 					}
 				}
 			);
@@ -26,14 +26,15 @@ juaApp.directive('resultList', function(){
 						for(var i=0; i<rowData.length; i++) {
 							$(tr).append("<td>" + rowData[i] + "</td>");
 						}
-						$("#resultsGrid").append(tr);
+						$("#gridBody").append(tr);
 					}
 				}
 			);
 			
 			scope.$on('RESULT_INITIALISED', 
 				function(event, data) {
-					$("#resultsGrid").empty();
+					$("#gridHeader").empty();
+					$("#gridBody").empty();
 				}
 			);
 		}
