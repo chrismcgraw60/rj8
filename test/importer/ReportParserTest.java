@@ -1,8 +1,8 @@
 package importer;
 
 import static java.util.stream.Collectors.toList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
+import importer.ReportedTestResultEntry.FailureInfo;
 
 import java.util.List;
 import java.util.Map;
@@ -67,5 +67,64 @@ public class ReportParserTest {
 		assertEquals("Result has expected Method Name.", "testPassAssertionWithComment_A", resultEntry.getMethodName());
 		assertNotNull("Result has a well formed UUID storage ID.", resultEntry.getStorageId());
 		assertNotNull("Result has a non-null Time value.", resultEntry.getTime());
+		assertEquals("Result has expected status string.", resultEntry.getStatus(), ReportedTestResultEntry.STATUS_PASS);
+		
+		/*
+		 * A sample fail is reported correctly.
+		 *   
+		 	<testcase classname="testdata.CreateReportTestB" name="testFailAssertionWithComment_B" time="0.001">
+    			<failure 
+    				message="Numbers should be equal. expected:&lt;1&gt; but was:&lt;2&gt;" 
+    				type="junit.framework.AssertionFailedError">
+    				
+    				junit.framework.AssertionFailedError: Numbers should be equal. expected:&lt;1&gt; but was:&lt;2&gt;
+					at testdata.CreateReportTestB.testFailAssertionWithComment_B(CreateReportTestB.java:38)
+				</failure>
+  			</testcase>
+		 */
+		ReportedTestResultEntry resultFailureEntry = (ReportedTestResultEntry)testResultElements.get(10);
+		assertEquals("Result has expected qualified Name.", "testdata.CreateReportTestB", resultFailureEntry.getQualifiedName());
+		assertEquals("Result has expected Local Name.", "CreateReportTestB", resultFailureEntry.getLocalTestCaseName());
+		assertEquals("Result has expected Package Name.", "testdata", resultFailureEntry.getPackageName());
+		assertEquals("Result has expected Method Name.", "testFailAssertionWithComment_B", resultFailureEntry.getMethodName());
+		assertNotNull("Result has a well formed UUID storage ID.", resultFailureEntry.getStorageId());
+		assertNotNull("Result has a non-null Time value.", resultFailureEntry.getTime());
+		assertNotNull("Result has failure info object.", resultFailureEntry.getFailureInfo());
+		assertEquals("Result has expected status string.", ReportedTestResultEntry.STATUS_FAIL, resultFailureEntry.getStatus());
+		
+		FailureInfo failInfo = resultFailureEntry.getFailureInfo();
+		assertEquals("FailureInfo has expected type.", "junit.framework.AssertionFailedError", failInfo.getExceptionName());
+		assertEquals("FailureInfo has expected message.", "Numbers should be equal. expected:<1> but was:<2>", failInfo.getMessage());
+		assertTrue("FailureInfo has expected details 1.", failInfo.getDetails().contains("junit.framework.AssertionFailedError: Numbers should be equal. expected:<1> but was:<2>"));
+		assertTrue("FailureInfo has expected details 2.", failInfo.getDetails().contains("at testdata.CreateReportTestB.testFailAssertionWithComment_B(CreateReportTestB.java:38)"));
+		assertEquals("FailureInfo has type 'failure'", failInfo.getFailureType(), FailureInfo.Type.failure);
+		
+		/*
+		 * A sample error is reported correctly.
+		 *   
+			<testcase classname="testdata.CreateReportTestC" name="testException_C" time="0.001">
+    			<error message="Error in Test helper method." type="java.lang.RuntimeException">java.lang.RuntimeException: Error in Test helper method.
+					at testdata.CreateReportTestC.doSomethingWrong(CreateReportTestC.java:47)
+					at testdata.CreateReportTestC.testException_C(CreateReportTestC.java:43)
+				</error>
+  			</testcase>
+		 */
+		ReportedTestResultEntry resultErrorEntry = (ReportedTestResultEntry)testResultElements.get(15);
+		assertEquals("Result has expected qualified Name.", "testdata.CreateReportTestC", resultErrorEntry.getQualifiedName());
+		assertEquals("Result has expected Local Name.", "CreateReportTestC", resultErrorEntry.getLocalTestCaseName());
+		assertEquals("Result has expected Package Name.", "testdata", resultErrorEntry.getPackageName());
+		assertEquals("Result has expected Method Name.", "testException_C", resultErrorEntry.getMethodName());
+		assertNotNull("Result has a well formed UUID storage ID.", resultErrorEntry.getStorageId());
+		assertNotNull("Result has a non-null Time value.", resultErrorEntry.getTime());
+		assertNotNull("Result has failure info object.", resultErrorEntry.getFailureInfo());
+		assertEquals("Result has expected status string.", ReportedTestResultEntry.STATUS_ERROR, resultErrorEntry.getStatus());
+		
+		FailureInfo errorInfo = resultErrorEntry.getFailureInfo();
+		assertEquals("FailureInfo has expected type.", "java.lang.RuntimeException", errorInfo.getExceptionName());
+		assertEquals("FailureInfo has expected message.", "Error in Test helper method.", errorInfo.getMessage());
+		assertTrue("FailureInfo has expected details 1.", errorInfo.getDetails().contains("java.lang.RuntimeException: Error in Test helper method."));
+		assertTrue("FailureInfo has expected details 2.", errorInfo.getDetails().contains("at testdata.CreateReportTestC.doSomethingWrong(CreateReportTestC.java:47)"));
+		assertTrue("FailureInfo has expected details 3.", errorInfo.getDetails().contains("at testdata.CreateReportTestC.testException_C(CreateReportTestC.java:43)"));
+		assertEquals("FailureInfo has type 'failure'", errorInfo.getFailureType(), FailureInfo.Type.error);
 	}
 }

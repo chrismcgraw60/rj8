@@ -1,5 +1,7 @@
 package importer;
 
+import importer.ReportedTestResultEntry.FailureInfo;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -128,11 +130,11 @@ public class ReportParser {
 	private static final String nameAttr = "name";
 	private static final String timeAttr = "time";
 //	private static final String skipped = "skipped";
-//	private static final String error = "error";
-//	private static final String failure = "failure";
-//	
-//	private static final String message = "message";
-//	private static final String type = "type";
+	private static final String error = "error";
+	private static final String failure = "failure";
+	
+	private static final String message = "message";
+	private static final String type = "type";
 	private static final String timestampAttr = "timestamp";
 	
 	public static class ImportResult {
@@ -221,24 +223,17 @@ public class ReportParser {
 		while (eventReader.hasNext() && !isTestCaseParsed) {
 			XMLEvent testCaseElementEvent = eventReader.nextEvent();
 			if (testCaseElementEvent.isStartElement()) {
-//								if(failure.equals(elemName)) {
-//									
-//									String messageAttr = null;
-//									String typeAttr = null;
-//									
-//									@SuppressWarnings("unchecked")
-//									Iterator<Attribute> attributes = startElement.getAttributes();
-//									while(attributes.hasNext()) {
-//										Attribute attribute = attributes.next();
-//										if (attribute.getName().toString().equals(message)) {
-//											messageAttr = attribute.getValue();
-//							            }
-//										if (attribute.getName().toString().equals(type)) {
-//											messageAttr = attribute.getValue();
-//							            }
-//									}
-//									sb.append("\t\t[FAIL msg = " + messageAttr  + "], type = " + typeAttr + "]");
-//								}
+				StartElement startElement = testCaseElementEvent.asStartElement();
+				String elemName = startElement.getName().getLocalPart();
+				
+				if(failure.equals(elemName) || error.equals(elemName)) {
+					
+					FailureInfo.Type failType = 
+						failure.equals(elemName) ? FailureInfo.Type.failure : FailureInfo.Type.error; 
+					
+					FailureInfo failInfo = parseFailureInfo(eventReader, startElement, failType);
+					testCaseEntry.setFailInfo(failInfo);
+				}
 			}
 			
 			if (testCaseElementEvent.isEndElement()) {
@@ -252,6 +247,42 @@ public class ReportParser {
 		
 		testCaseEntry.validateState();
 		return testCaseEntry;
+	}
+
+	private static FailureInfo parseFailureInfo(final XMLEventReader eventReader, StartElement startElement, FailureInfo.Type failType)
+			throws XMLStreamException {
+		
+		String messageAttr = null;
+		String typeAttr = null;
+		String detailsString = null;
+		
+		@SuppressWarnings("unchecked")
+		Iterator<Attribute> failAttributes = startElement.getAttributes();
+		while(failAttributes.hasNext()) {
+			Attribute attribute = failAttributes.next();
+			if (attribute.getName().toString().equals(message)) {
+				messageAttr = attribute.getValue();
+		    }
+			if (attribute.getName().toString().equals(type)) {
+				typeAttr = attribute.getValue();
+		    }
+		}
+		
+		StringBuilder detailsBuilder = new StringBuilder();
+		boolean isReadingChars = true;
+		while (eventReader.hasNext() && isReadingChars) {
+			XMLEvent nextEvent = eventReader.nextEvent();
+			if (nextEvent.isCharacters()) {
+				detailsBuilder.append(nextEvent.asCharacters().getData());
+			}
+			else {
+				isReadingChars = false;
+			}
+		}
+		detailsString = detailsBuilder.toString();		
+		
+		FailureInfo failInfo = new FailureInfo(messageAttr, typeAttr, detailsString, failType);
+		return failInfo;
 	}
 
 	private static ReportedTestSuiteEntry parseTestSuiteEntry(StartElement startElement) {

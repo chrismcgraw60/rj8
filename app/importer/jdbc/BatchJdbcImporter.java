@@ -2,6 +2,7 @@ package importer.jdbc;
 
 import importer.ReportedTestElement;
 import importer.ReportedTestResultEntry;
+import importer.ReportedTestResultEntry.FailureInfo;
 import importer.ReportedTestSuiteEntry;
 
 import java.sql.Connection;
@@ -27,7 +28,7 @@ import com.google.common.base.Throwables;
 public class BatchJdbcImporter {
 
 	private static final String insertTestCaseSQL = 
-			"insert into testEntry (uuid, className, methodName, time, suite_id) values (?, ?, ?, ?, ?)";
+			"insert into testEntry (uuid, className, methodName, time, status, failexception, failmessage, faildetail, suite_id) values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	private static final String insertTestSuiteSQL = 
 			"insert into testSuite (uuid, className, time, folder, file, timestamp) values (?, ?, ?, ?, ?, ?)";
 	
@@ -100,7 +101,16 @@ public class BatchJdbcImporter {
 		insertTestCase.setString(2, tre.getQualifiedName());
 		insertTestCase.setString(3, tre.getMethodName());
 		insertTestCase.setString(4, tre.getTime());
-		insertTestCase.setLong(5, keyOfLastCreatedSuite);
+		
+		insertTestCase.setString(5, tre.getStatus());
+		
+		FailureInfo fi = tre.getFailureInfo();
+		
+		insertTestCase.setString(6, fi == null ? null : fi.getExceptionName());
+		insertTestCase.setString(7, fi == null ? null : fi.getMessage());
+		insertTestCase.setString(8, fi == null ? null : fi.getDetails());
+		
+		insertTestCase.setLong(9, keyOfLastCreatedSuite);
 		insertTestCase.addBatch();
 	}
 

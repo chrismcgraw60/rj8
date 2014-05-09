@@ -44,15 +44,14 @@ public class ReportParserBulkTest {
 	public void testParallelParse() throws Exception {
 		
 		Integer actualImportedTestResultCount = new ForkJoinPool().submit( () -> {
-				Integer c = 
+				Integer importedRowCount = 
 					bulkTestFilePaths()
-					.peek(s -> System.out.println(s))
 					.parallel()
-					.map(fp -> ReportParser.parse(fp))
-					.map(tce -> BatchJdbcImporter.doImport(tce, DS, 1000))
+					.map(filePath -> ReportParser.parse(filePath))
+					.map(testResults -> BatchJdbcImporter.doImport(testResults, DS, 1000))
 					.collect(Collectors.summingInt(i -> i));
 				
-				return c;
+				return importedRowCount;
 			}
 		).get();
 		

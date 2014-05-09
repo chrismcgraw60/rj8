@@ -1,6 +1,10 @@
 package query;
 
+import static org.junit.Assert.assertNotNull;
+
 import java.sql.ResultSet;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -30,7 +34,11 @@ public class JdbcQueryServiceTest {
 		ResultSet rs = new JdbcQueryService(DS).runQuery(sql);
 		JsonResulSet jsonRs = JsonResulSet.initialiseFrom(rs);
 		
-		System.out.println(jsonRs.getMetadata());
-		jsonRs.rowsAsStream().forEach(System.out::println);
+		String metadataJson = jsonRs.getMetadata();
+		List<String> rowJson = jsonRs.rowsAsStream().collect(Collectors.toList());
+		
+		assertNotNull(metadataJson);
+		assertNotNull(rowJson);
+		
 	}
 }

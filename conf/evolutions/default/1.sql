@@ -18,6 +18,10 @@ CREATE TABLE TestEntry (
   className		varchar(1024),
   methodName	varchar(1024),
   time			varchar(32),
+  status		varchar(8),
+  failException	varchar(512),
+  failMessage	varchar(1024),
+  failDetail	CLOB,
   suite_Id		bigint,
   
   CONSTRAINT testEntryPK PRIMARY KEY (id),
