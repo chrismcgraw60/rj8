@@ -104,7 +104,15 @@ public class Application extends Controller {
 	        		
 	        		out.write(jsonRs.getMetadata());
 	        		jsonRs.rowsAsStream().forEach(out::write);
-//	        		out.close();
+	        		
+	        		/*
+	        		 * Useful for seeing graph building up from streamed results.
+	        		 */
+//	        		jsonRs.rowsAsStream().forEach( s -> {
+//	        				try { Thread.sleep(1); } catch (Exception e) { }
+//	        				out.write(s);
+//	        			});
+	        		out.close();
             	});
             }
         };

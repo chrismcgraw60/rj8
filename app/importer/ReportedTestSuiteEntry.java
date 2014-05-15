@@ -13,6 +13,12 @@ public class ReportedTestSuiteEntry extends ReportedTestElement {
 	private String fileName;
 	private String folderName;
 	private DateTime timestamp;
+	private Long totalErrors;
+	private Long totalFailures;
+	/*
+	 * We provide a default value here as it may not be defined on a JUnit Suite Element.
+	 */
+	private Long totalSkipped = new Long(0);
 
 	/**
 	 * @return # of tests run in the Test suite.
@@ -84,6 +90,57 @@ public class ReportedTestSuiteEntry extends ReportedTestElement {
 		return this;
 	}
 
+	/**
+	 * @return The # errors as per the Junit report. 
+	 */
+	public Long getTotalErrors() {
+		return totalErrors;
+	}
+
+	/**
+	 * @param totalErrors The # errors as per the Junit report. 
+	 * @return This object.
+	 */
+	public ReportedTestSuiteEntry setTotalErrors(Long totalErrors) {
+		Preconditions.checkNotNull(totalErrors, "totalErrors must not be null.");
+		this.totalErrors = totalErrors;
+		return this;
+	}
+
+	/**
+	 * @return The # failures as per the Junit report. 
+	 */
+	public Long getTotalFailures() {
+		return totalFailures;
+	}
+
+	/**
+	 * @param totalFailures The # failures as per the Junit report. 
+	 * @return This object.
+	 */
+	public ReportedTestSuiteEntry setTotalFailures(Long totalFailures) {
+		this.totalFailures = totalFailures;
+		Preconditions.checkNotNull(totalFailures, "totalFailures must not be null.");
+		return this;
+	}
+	
+	/**
+	 * @return The # skipped tests as per the Junit report. 
+	 */
+	public Long getTotalSkipped() {
+		return totalSkipped;
+	}
+
+	/**
+	 * @param totalSkipped The # skipped tests as per the Junit report. 
+	 * @return This object.
+	 */
+	public ReportedTestSuiteEntry setTotalSkipped(Long totalSkipped) {
+		this.totalSkipped = totalSkipped;
+		Preconditions.checkNotNull(totalSkipped, "totalSkipped must not be null.");
+		return this;
+	}
+
 	/* (non-Javadoc)
 	 * @see importer.ReportedTestElement#validateState()
 	 */
@@ -94,6 +151,9 @@ public class ReportedTestSuiteEntry extends ReportedTestElement {
 		checkStateNotNull(this.fileName, "fileName was not set.");
 		checkStateNotNull(this.folderName, "folderName was not set.");
 		checkStateNotNull(this.timestamp, "timestamp was not set.");
+		checkStateNotNull(this.totalErrors, "totalErrors was not set.");
+		checkStateNotNull(this.totalFailures, "totalFailures was not set.");
+		checkStateNotNull(this.totalSkipped, "totalSkipped was not set.");
 	}
 	
 	@Override

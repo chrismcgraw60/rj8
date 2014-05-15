@@ -40,7 +40,10 @@ public class ReportParserTest {
 		assertEquals("Suite has expected Package Name.", "testdata", suiteEntry.getPackageName());
 		assertNotNull("Suite has a well formed UUID storage ID.", suiteEntry.getStorageId());
 		assertNotNull("Suite has a non-null Time value.", suiteEntry.getTime());
-		assertEquals("Suite has expected #tests run.", suiteEntry.getTestsRun(), new Long(18));
+		assertEquals("Suite has expected #tests run.", new Long(18), suiteEntry.getTestsRun());
+		assertEquals("Suite has expected #errors.", new Long(3), suiteEntry.getTotalErrors());
+		assertEquals("Suite has expected #failures.", new Long(9), suiteEntry.getTotalFailures());
+		assertEquals("Suite has expected #skipped.", new Long(0), suiteEntry.getTotalSkipped());
 		
 		assertEquals("Expect 1 Test Suite Element", 18, testResultElements.size());
 		List<String> testResultNames = 

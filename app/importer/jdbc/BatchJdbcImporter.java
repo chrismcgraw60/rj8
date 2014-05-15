@@ -30,7 +30,7 @@ public class BatchJdbcImporter {
 	private static final String insertTestCaseSQL = 
 			"insert into testEntry (uuid, className, methodName, time, status, failexception, failmessage, faildetail, suite_id) values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	private static final String insertTestSuiteSQL = 
-			"insert into testSuite (uuid, className, time, folder, file, timestamp) values (?, ?, ?, ?, ?, ?)";
+			"insert into testSuite (uuid, className, time, folder, file, tests, failures, errors, skipped, timestamp) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	
 	/**
 	 * Import a given {@link Stream} of {@link ReportedTestElement}s to a database.
@@ -122,7 +122,14 @@ public class BatchJdbcImporter {
 		insertTestSuite.setString(3, tse.getTime());
 		insertTestSuite.setString(4, tse.getContainingFolder());
 		insertTestSuite.setString(5, tse.getContainingFile());
-		insertTestSuite.setTimestamp(6,  new Timestamp(tse.getTimestamp().getMillis()));
+		
+		
+		insertTestSuite.setLong(6, tse.getTestsRun());
+		insertTestSuite.setLong(7, tse.getTotalFailures());
+		insertTestSuite.setLong(8, tse.getTotalErrors());
+		insertTestSuite.setLong(9, tse.getTotalSkipped());
+		
+		insertTestSuite.setTimestamp(10,  new Timestamp(tse.getTimestamp().getMillis()));
 		
 		Long idOfInsertedRecord = null;
 		

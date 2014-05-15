@@ -124,15 +124,15 @@ Junit report schema here ...
 public class ReportParser {
 	private static final String testsuiteEl = "testsuite";
 	private static final String testsAttr = "tests";
-	
 	private static final String testcaseEl = "testcase";
 	private static final String classnameAttr = "classname";
 	private static final String nameAttr = "name";
 	private static final String timeAttr = "time";
-//	private static final String skipped = "skipped";
-	private static final String error = "error";
-	private static final String failure = "failure";
-	
+	private static final String errorsAttr = "errors";
+	private static final String skippedAttr = "skipped";
+	private static final String failuresAttr = "failures";
+	private static final String errorEl = "error";
+	private static final String failureEl = "failure";
 	private static final String message = "message";
 	private static final String type = "type";
 	private static final String timestampAttr = "timestamp";
@@ -226,10 +226,10 @@ public class ReportParser {
 				StartElement startElement = testCaseElementEvent.asStartElement();
 				String elemName = startElement.getName().getLocalPart();
 				
-				if(failure.equals(elemName) || error.equals(elemName)) {
+				if(failureEl.equals(elemName) || errorEl.equals(elemName)) {
 					
 					FailureInfo.Type failType = 
-						failure.equals(elemName) ? FailureInfo.Type.failure : FailureInfo.Type.error; 
+						failureEl.equals(elemName) ? FailureInfo.Type.failure : FailureInfo.Type.error; 
 					
 					FailureInfo failInfo = parseFailureInfo(eventReader, startElement, failType);
 					testCaseEntry.setFailInfo(failInfo);
@@ -305,6 +305,15 @@ public class ReportParser {
 		    }
 			if (attribute.getName().toString().equals(timestampAttr)) {
 				testSuiteEntry.setTimestamp(DateTime.parse(attribute.getValue()));
+		    }
+			if (attribute.getName().toString().equals(errorsAttr)) {
+				testSuiteEntry.setTotalErrors(Long.parseLong(attribute.getValue()));
+		    }
+			if (attribute.getName().toString().equals(failuresAttr)) {
+				testSuiteEntry.setTotalFailures(Long.parseLong(attribute.getValue()));
+		    }
+			if (attribute.getName().toString().equals(skippedAttr)) {
+				testSuiteEntry.setTotalSkipped(Long.parseLong(attribute.getValue()));
 		    }
 		}
 		return testSuiteEntry;

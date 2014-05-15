@@ -7,6 +7,10 @@ CREATE TABLE TestSuite (
   time			varchar(32),
   folder		varchar(256),
   file			varchar(256),
+  tests			bigint,
+  failures		bigint,
+  errors		bigint,
+  skipped		bigint,
   timestamp		timestamp,
   
   CONSTRAINT testSuiteyPK PRIMARY KEY (id)

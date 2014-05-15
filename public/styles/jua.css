@@ -1,7 +1,47 @@
 body {
   padding-top: 50px;
 }
-.starter-template {
-  padding: 40px 15px;
-  text-align: center;
+
+
+/* Summary Graph Styles */
+svg {
+	font: 12px Arial;
+}
+
+path {
+	stroke: steelblue;
+	stroke-width: 2;
+	fill: none;
+}
+
+.pass-path {
+	stroke: green;
+	stroke-width: 1;
+}
+
+.axis path, .axis line {
+	fill: none;
+	stroke: grey;
+	stroke-width: 1;
+	shape-rendering: crispEdges;
+}
+
+.grid .tick {
+	stroke: lightgrey;
+	opacity: 0.7;
+}
+.grid path {
+	stroke-width: 0;
+}
+
+div.tooltip {
+	position: absolute;
+	padding: 5px;
+	font: 12px sans-serif;
+	background: white;
+	border: 1px;
+	border-style: solid;
+	border-color: lightsteelblue;
+	border-radius: 8px;
+	pointer-events: none;
 }
