@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
 import java.sql.ResultSet;
 import java.util.List;
 import java.util.Map;
@@ -16,8 +15,6 @@ import org.junit.Test;
 
 import utils.H2DataSource;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
 import com.jolbox.bonecp.BoneCPDataSource;

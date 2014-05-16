@@ -6,6 +6,7 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({ 
+	ImportSourceTest.class,
 	ReportedTestResultEntryTest.class,
 	ReportedTestSuiteEntryTest.class,
 	ReportParserTest.class

@@ -24,7 +24,7 @@ public class TestDataInfo {
 	public static String getTestReportFolderPath() {
 		URL here = ClassLoader.getSystemResource(".");
 		File fHere = new File(here.getPath());
-		String path = fHere.getParentFile().getAbsoluteFile() + "/" + testDataFolderPath + testDataFolderName;
+		String path = fHere.getParentFile().getAbsoluteFile() + testDataFolderPath + testDataFolderName;
 		return path;
 	}
 	
@@ -32,7 +32,7 @@ public class TestDataInfo {
 	 * @return The path to the Test Report File.
 	 */
 	public static String getTestReportFilePath() {
-		return getTestReportFolderPath() + testDataFile;
+		return getTestReportFolderPath() + "/" + testDataFile;
 	}
 	
 	/**
