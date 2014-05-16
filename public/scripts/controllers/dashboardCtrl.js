@@ -80,15 +80,24 @@ dashboardControllers.controller('DashboardCtrl', ['$scope', 'adhocQuerySocketSer
             	 * TODO: Could turn this into a smarter generic parser. Is currently a 
             	 * bit wasteful as data is duplicated in array and field.
             	 */
-            	rowData.timestamp = parseDate(rowData[10]);
-            	rowData.testsRun = +(rowData[6]);
-            	rowData.errors = +(rowData[7]);
-            	rowData.failures = +(rowData[8]);
-            	rowData.skipped = +(rowData[9]);
-            	rowData.passing = (rowData.testsRun - (rowData.errors + rowData.failures + rowData.skipped))
             	
-				rowData[10] = parseDate(rowData[10]);
-				rowData[6] = +(rowData[6]);
+            	rowData.id 			= +(rowData[0]);
+            	rowData.uuid 		= rowData[1];
+            	rowData.className 	= rowData[2];
+            	rowData.time	 	= rowData[3];
+            	rowData.folder 		= rowData[4];
+            	rowData.file 		= rowData[5];
+            	
+            	rowData.testsRun 	= +(rowData[6]);
+            	rowData.errors 		= +(rowData[7]);
+            	rowData.failures 	= +(rowData[8]);
+            	rowData.skipped 	= +(rowData[9]);
+            	rowData.timestamp 	= parseDate(rowData[10]);
+            	
+            	rowData.passing 	= (rowData.testsRun - (rowData.errors + rowData.failures + rowData.skipped))
+            	
+//				rowData[10] = parseDate(rowData[10]);
+//				rowData[6] = +(rowData[6]);
 				
 				$scope.$apply( new function() {
 					$scope.rowDataResults.push(rowData);
