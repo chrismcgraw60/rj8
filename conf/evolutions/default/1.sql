@@ -3,6 +3,7 @@
 CREATE TABLE TestSuite (
   id			bigint SERIAL not null,
   uuid			varchar(64),
+  packageName	varchar(2056),
   className		varchar(1024),
   time			varchar(32),
   folder		varchar(256),

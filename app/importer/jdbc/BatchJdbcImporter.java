@@ -30,7 +30,7 @@ public class BatchJdbcImporter {
 	private static final String insertTestCaseSQL = 
 			"insert into testEntry (uuid, className, methodName, time, status, failexception, failmessage, faildetail, suite_id) values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	private static final String insertTestSuiteSQL = 
-			"insert into testSuite (uuid, className, time, folder, file, tests, failures, errors, skipped, timestamp) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			"insert into testSuite (uuid, packageName, className, time, folder, file, tests, failures, errors, skipped, timestamp) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	
 	/**
 	 * Import a given {@link Stream} of {@link ReportedTestElement}s to a database.
@@ -118,18 +118,19 @@ public class BatchJdbcImporter {
 			throws SQLException {
 		ReportedTestSuiteEntry tse = (ReportedTestSuiteEntry)te;
 		insertTestSuite.setString(1, tse.getStorageId().toString());
-		insertTestSuite.setString(2, tse.getQualifiedName());
-		insertTestSuite.setString(3, tse.getTime());
-		insertTestSuite.setString(4, tse.getContainingFolder());
-		insertTestSuite.setString(5, tse.getContainingFile());
+		insertTestSuite.setString(2, tse.getPackageName());
+		insertTestSuite.setString(3, tse.getLocalTestCaseName());
+		insertTestSuite.setString(4, tse.getTime());
+		insertTestSuite.setString(5, tse.getContainingFolder());
+		insertTestSuite.setString(6, tse.getContainingFile());
 		
 		
-		insertTestSuite.setLong(6, tse.getTestsRun());
-		insertTestSuite.setLong(7, tse.getTotalFailures());
-		insertTestSuite.setLong(8, tse.getTotalErrors());
-		insertTestSuite.setLong(9, tse.getTotalSkipped());
+		insertTestSuite.setLong(7, tse.getTestsRun());
+		insertTestSuite.setLong(8, tse.getTotalFailures());
+		insertTestSuite.setLong(9, tse.getTotalErrors());
+		insertTestSuite.setLong(10, tse.getTotalSkipped());
 		
-		insertTestSuite.setTimestamp(10,  new Timestamp(tse.getTimestamp().getMillis()));
+		insertTestSuite.setTimestamp(11,  new Timestamp(tse.getTimestamp().getMillis()));
 		
 		Long idOfInsertedRecord = null;
 		
