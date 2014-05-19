@@ -12,12 +12,19 @@ public class ReportedTestResultEntry extends ReportedTestElement {
 	public static final String STATUS_PASS = "PASS";
 	public static final String STATUS_FAIL = "FAIL";
 	public static final String STATUS_ERROR = "ERROR";
+	public static final String STATUS_SKIPPED = "SKIPPED";
 	
 	private Long id = new Long(-1);
 	private String testMethodName;
 	private FailureInfo failInfo;
+	private boolean isSkipped = false;
 
 	public String getStatus() {
+		
+		if (isSkipped()) {
+			return STATUS_SKIPPED;
+		}
+		
 		if (getFailureInfo() != null) {
 			return failInfo.getFailureType() == Type.failure ? STATUS_FAIL : STATUS_ERROR;
 		}
@@ -50,6 +57,14 @@ public class ReportedTestResultEntry extends ReportedTestElement {
 		Preconditions.checkNotNull(testMethodName, "testMethodName must not be null.");
 		this.testMethodName = testMethodName;
 		return this;
+	}
+
+	public boolean isSkipped() {
+		return isSkipped;
+	}
+
+	public void setSkipped(boolean isSkipped) {
+		this.isSkipped = isSkipped;
 	}
 
 	@Override

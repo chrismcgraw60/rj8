@@ -133,6 +133,7 @@ public class ReportParser {
 	private static final String failuresAttr = "failures";
 	private static final String errorEl = "error";
 	private static final String failureEl = "failure";
+	private static final String skippedEl = "skipped";
 	private static final String message = "message";
 	private static final String type = "type";
 	private static final String timestampAttr = "timestamp";
@@ -233,6 +234,10 @@ public class ReportParser {
 					
 					FailureInfo failInfo = parseFailureInfo(eventReader, startElement, failType);
 					testCaseEntry.setFailInfo(failInfo);
+				}
+				
+				if (skippedEl.equals(elemName)) {
+					testCaseEntry.setSkipped(true);
 				}
 			}
 			

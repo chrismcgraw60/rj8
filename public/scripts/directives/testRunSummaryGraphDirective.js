@@ -137,6 +137,8 @@ juaApp.directive('testRunSummaryGraph', ['$window', '$timeout', '$location', fun
         					.tickSize(-width, 0, 0)
         					.tickFormat(""));
         		
+        		console.log(scope.rowDataResults);
+        		
         		/*
         		 * Plot line of #tests run by date.
         		 */
@@ -194,7 +196,7 @@ juaApp.directive('testRunSummaryGraph', ['$window', '$timeout', '$location', fun
                 			});
                 		});
         		}
-        		
+        	
         		/*
         		 * Plot line #test passes on given date.
         		 * If there are any fails / errors / skipped then this will

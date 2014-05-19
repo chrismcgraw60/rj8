@@ -8,33 +8,33 @@ import org.junit.Test;
 /**
  * Generates various Types of Junit result to provide data for import.
  */
-public class CreateReportTestC {
+@Ignore
+public class CreateReportTestD_Ignored {
 
 	@Test
-	public void testFailNotImplemented_C() {
+	public void testFailNotImplemented_D() {
 		fail("Not yet implemented");
 	}
 
 	@Test
-	@Ignore
-	public void testPassAssertionNoComment_C() {
+	public void testPassAssertionNoComment_D() {
 		assertTrue(true);
 	}
 	
 	@Test
-	public void testPassAssertionWithComment_C() {
+	public void testPassAssertionWithComment_D() {
 		assertTrue("This should pass", true);
 	}
 
 	@Test
-	public void testFailAssertionNosComment_C() {
+	public void testFailAssertionNosComment_D() {
 		int expected = 1;
 		int actual = 2;
 		assertEquals(expected,  actual);
 	}
 	
 	@Test
-	public void testFailAssertionWithComment_C() {
+	public void testFailAssertionWithComment_D() {
 		int expected = 1;
 		int actual = 2;
 		assertEquals("Numbers should be equal.", expected,  actual);

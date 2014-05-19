@@ -83,23 +83,22 @@ dashboardControllers.controller('DashboardCtrl', ['$scope', 'adhocQuerySocketSer
             	
             	rowData.id 			= +(rowData[0]);
             	rowData.uuid 		= rowData[1];
-            	rowData.className 	= rowData[2];
-            	rowData.time	 	= rowData[3];
-            	rowData.folder 		= rowData[4];
-            	rowData.file 		= rowData[5];
+            	rowData.packageName = rowData[2]
+            	rowData.className 	= rowData[3];
+            	rowData.time	 	= rowData[4];
+            	rowData.folder 		= rowData[5];
+            	rowData.file 		= rowData[6];
             	
-            	rowData.testsRun 	= +(rowData[6]);
-            	rowData.errors 		= +(rowData[7]);
+            	rowData.testsRun 	= +(rowData[7]);
             	rowData.failures 	= +(rowData[8]);
-            	rowData.skipped 	= +(rowData[9]);
-            	rowData.timestamp 	= parseDate(rowData[10]);
+            	rowData.errors 		= +(rowData[9]);
+            	rowData.skipped 	= +(rowData[10]);
+            	rowData.timestamp 	= parseDate(rowData[11]);
             	
             	rowData.passing 	= (rowData.testsRun - (rowData.errors + rowData.failures + rowData.skipped))
-            	
-//				rowData[10] = parseDate(rowData[10]);
-//				rowData[6] = +(rowData[6]);
 				
 				$scope.$apply( new function() {
+					console.log("PUSH row:" + rowData);
 					$scope.rowDataResults.push(rowData);
 				});
 			}

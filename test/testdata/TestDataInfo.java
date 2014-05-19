@@ -16,7 +16,7 @@ public class TestDataInfo {
 	public static final String testDataFolderName = "ant-test-results";
 	public static final String testDataFolderPath = "/test/";
 	public static final String testDataFile = "TEST-testdata.AllTests.xml";
-	public static final DateTime testDataSuiteTimeStamp = DateTime.parse("2014-04-22T17:34:29");
+	public static final DateTime testDataSuiteTimeStamp = DateTime.parse("2014-05-19T08:45:56");
 	
 	/**
 	 * @return The path to the Test Report File's parent folder.

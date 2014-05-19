@@ -40,12 +40,12 @@ public class ReportParserTest {
 		assertEquals("Suite has expected Package Name.", "testdata", suiteEntry.getPackageName());
 		assertNotNull("Suite has a well formed UUID storage ID.", suiteEntry.getStorageId());
 		assertNotNull("Suite has a non-null Time value.", suiteEntry.getTime());
-		assertEquals("Suite has expected #tests run.", new Long(18), suiteEntry.getTestsRun());
+		assertEquals("Suite has expected #tests run.", new Long(19), suiteEntry.getTestsRun());
 		assertEquals("Suite has expected #errors.", new Long(3), suiteEntry.getTotalErrors());
 		assertEquals("Suite has expected #failures.", new Long(9), suiteEntry.getTotalFailures());
-		assertEquals("Suite has expected #skipped.", new Long(0), suiteEntry.getTotalSkipped());
+		assertEquals("Suite has expected #skipped.", new Long(2), suiteEntry.getTotalSkipped());
 		
-		assertEquals("Expect 1 Test Suite Element", 18, testResultElements.size());
+		assertEquals("Expect 1 Test Suite Element", 19, testResultElements.size());
 		List<String> testResultNames = 
 				testResultElements.stream()
 					.map(tre -> (ReportedTestResultEntry)tre)
@@ -54,16 +54,16 @@ public class ReportParserTest {
 		
 		/*
 		 * Check Result Entries.
-		 * Sample the list.
+		 * Sample the list. Reported element at index 0 is a skipped test, so we ignore it just now.
 		 */
-		assertEquals("1st ReportedTestResultEntry as expected.", "testdata.CreateReportTestA.testException_A", testResultNames.get(0));
-		assertEquals("7th ReportedTestResultEntry as expected.", "testdata.CreateReportTestB.testException_B", testResultNames.get(6));
-		assertEquals("13th ReportedTestResultEntry as expected.", "testdata.CreateReportTestC.testException_C", testResultNames.get(12));
+		assertEquals("1st ReportedTestResultEntry as expected.", "testdata.CreateReportTestA.testException_A", testResultNames.get(1));
+		assertEquals("7th ReportedTestResultEntry as expected.", "testdata.CreateReportTestB.testException_B", testResultNames.get(7));
+		assertEquals("13th ReportedTestResultEntry as expected.", "testdata.CreateReportTestC.testException_C", testResultNames.get(13));
 		
 		/*
 		 * A sample test pass is reported correctly.
 		 */
-		ReportedTestResultEntry resultEntry = (ReportedTestResultEntry)testResultElements.get(4);
+		ReportedTestResultEntry resultEntry = (ReportedTestResultEntry)testResultElements.get(2);
 		assertEquals("Result has expected qualified Name.", "testdata.CreateReportTestA", resultEntry.getQualifiedName());
 		assertEquals("Result has expected Local Name.", "CreateReportTestA", resultEntry.getLocalTestCaseName());
 		assertEquals("Result has expected Package Name.", "testdata", resultEntry.getPackageName());
@@ -112,7 +112,7 @@ public class ReportParserTest {
 				</error>
   			</testcase>
 		 */
-		ReportedTestResultEntry resultErrorEntry = (ReportedTestResultEntry)testResultElements.get(15);
+		ReportedTestResultEntry resultErrorEntry = (ReportedTestResultEntry)testResultElements.get(17);
 		assertEquals("Result has expected qualified Name.", "testdata.CreateReportTestC", resultErrorEntry.getQualifiedName());
 		assertEquals("Result has expected Local Name.", "CreateReportTestC", resultErrorEntry.getLocalTestCaseName());
 		assertEquals("Result has expected Package Name.", "testdata", resultErrorEntry.getPackageName());
@@ -126,8 +126,40 @@ public class ReportParserTest {
 		assertEquals("FailureInfo has expected type.", "java.lang.RuntimeException", errorInfo.getExceptionName());
 		assertEquals("FailureInfo has expected message.", "Error in Test helper method.", errorInfo.getMessage());
 		assertTrue("FailureInfo has expected details 1.", errorInfo.getDetails().contains("java.lang.RuntimeException: Error in Test helper method."));
-		assertTrue("FailureInfo has expected details 2.", errorInfo.getDetails().contains("at testdata.CreateReportTestC.doSomethingWrong(CreateReportTestC.java:47)"));
-		assertTrue("FailureInfo has expected details 3.", errorInfo.getDetails().contains("at testdata.CreateReportTestC.testException_C(CreateReportTestC.java:43)"));
+		assertTrue("FailureInfo has expected details 2.", errorInfo.getDetails().contains("at testdata.CreateReportTestC.doSomethingWrong(CreateReportTestC.java:49)"));
+		assertTrue("FailureInfo has expected details 3.", errorInfo.getDetails().contains("at testdata.CreateReportTestC.testException_C(CreateReportTestC.java:45)"));
 		assertEquals("FailureInfo has type 'failure'", errorInfo.getFailureType(), FailureInfo.Type.error);
+		
+		/*
+		 * A sample skipped test method is reported correctly.
+		 * 
+		 	<testcase classname="testdata.CreateReportTestC" name="testPassAssertionNoComment_C" time="0.0">
+    			<skipped />
+  			</testcase>
+		 */
+		ReportedTestResultEntry resultSkippedEntry = (ReportedTestResultEntry)testResultElements.get(13);
+		assertEquals("Result has expected qualified Name.", "testdata.CreateReportTestC", resultSkippedEntry.getQualifiedName());
+		assertEquals("Result has expected Local Name.", "CreateReportTestC", resultSkippedEntry.getLocalTestCaseName());
+		assertEquals("Result has expected Package Name.", "testdata", resultSkippedEntry.getPackageName());
+		assertEquals("Result has expected Method Name.", "testPassAssertionNoComment_C", resultSkippedEntry.getMethodName());
+		assertNotNull("Result has a well formed UUID storage ID.", resultSkippedEntry.getStorageId());
+		assertEquals("Result has a 0.0 Time value.", "0.0", resultSkippedEntry.getTime());
+		assertEquals("Result has expected status string.", ReportedTestResultEntry.STATUS_SKIPPED, resultSkippedEntry.getStatus());
+		
+		/*
+		 * A sample skipped test class is reported correctly.
+		 * 
+		 	<testcase classname="junit.framework.JUnit4TestCaseFacade" name="testdata.CreateReportTestD_Ignored" time="0.0">
+    			<skipped />
+  			</testcase>
+		 */
+		ReportedTestResultEntry testCaseSkipped = (ReportedTestResultEntry)testResultElements.get(18);
+		assertEquals("Result has expected qualified Name.", "junit.framework.JUnit4TestCaseFacade", testCaseSkipped.getQualifiedName());
+		assertEquals("Result has expected Local Name.", "JUnit4TestCaseFacade", testCaseSkipped.getLocalTestCaseName());
+		assertEquals("Result has expected Package Name.", "junit.framework", testCaseSkipped.getPackageName());
+		assertEquals("Result has expected Method Name.", "testdata.CreateReportTestD_Ignored", testCaseSkipped.getMethodName());
+		assertNotNull("Result has a well formed UUID storage ID.", testCaseSkipped.getStorageId());
+		assertEquals("Result has a 0.0 Time value.", "0.0", testCaseSkipped.getTime());
+		assertEquals("Result has expected status string.", ReportedTestResultEntry.STATUS_SKIPPED, testCaseSkipped.getStatus());
 	}
 }

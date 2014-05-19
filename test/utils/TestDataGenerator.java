@@ -1,6 +1,8 @@
 package utils;
 
 import importer.ReportedTestElement;
+import importer.ReportedTestResultEntry;
+import importer.ReportedTestResultEntry.FailureInfo;
 import importer.ReportedTestSuiteEntry;
 import importer.jdbc.BatchJdbcImporter;
 
@@ -30,13 +32,32 @@ public class TestDataGenerator {
 	private static final String deleteTestSuiteDataSQL = "delete from testSuite";
 	
 	private static final String folder = "/testFolder";
-	private static final String qualifiedName = "com.chris.AllTests";
+	private static final String qualifiedSuiteName = "com.chris.AllTests";
 	private static final String fileTemplate = "TEST-dev_{$id}.xml";
 	
-	private static final int testSuiteCount = 1000;
-	private static final int maxTestsInSuite = 10000;
-	private static final int minTestsInSuite = 10;
+	List<String> qNames = Lists.newArrayList(
+			"com.foo.db.SqlTest", //4 
+			"com.foo.db.JdbcTest",  //2
+			"com.foo.db.ConfigTest", //3
+			"com.foo.model.UserTest", //10
+			"com.foo.model.AccountTest", //15
+			"com.foo.model.ProductTest", //30
+			"com.foo.model.orm.OrderDBTest",  //13
+			"com.foo.view.AccountViewTest", // 6
+			"com.foo.view.ProductWidgetTest", //10
+			"com.foo.view.UserLoginTest"); //7
 	
+	private static final int testSuiteCount = 500;
+	private static final int minTestsInSuite = 50;
+	
+	private static final String dummyErrorStack = 
+			"java.lang.RuntimeException: Error in Test helper method\n." + 
+			"at testdata.CreateReportTestC.doSomethingWrong(CreateReportTestC.java:49)\n" +
+			"at testdata.CreateReportTestC.testException_C(CreateReportTestC.java:45)";
+	
+	private static final String dummyFailStack = 
+			"junit.framework.AssertionFailedError: expected:&lt;1&gt; but was:&lt;2&gt;\n." + 
+			"at testdata.CreateReportTestC.testFailAssertionNosComment_C(CreateReportTestC.java:33)";
 	
 	@BeforeClass
 	public static void setUp() throws Exception {
@@ -53,9 +74,9 @@ public class TestDataGenerator {
 		
 		clearDB();
 		
-		DateTime timestamp = DateTime.now().minusDays(maxTestsInSuite);
+		DateTime timestamp = DateTime.now().minusDays(testSuiteCount);
 		
-		List<ReportedTestElement> suiteEntries = Lists.newArrayList();
+		List<ReportedTestElement> testEntries = Lists.newArrayList();
 		
 		for (int i = 0; i<testSuiteCount; i++) {
 			
@@ -63,24 +84,67 @@ public class TestDataGenerator {
 			ReportedTestSuiteEntry tse = new ReportedTestSuiteEntry();
 			tse.setContainingFile(fileTemplate.replace("{$id}", String.valueOf(i)));
 			tse.setContainingFolder(folder);
-			tse.setQualifiedName(qualifiedName);
+			tse.setQualifiedName(qualifiedSuiteName);
 			tse.setStorageId(UUID.randomUUID());
 			tse.setTime(randomTimeDuration(testsInSuite));
 			tse.setTimestamp(timestamp);
 			tse.setTestsRun(testsInSuite);
-			tse.setTotalErrors(randomNumTestsInRange(i, 2));
-			tse.setTotalFailures(randomNumTestsInRange(i, 5));
-			tse.setTotalSkipped(randomNumTestsInRange(i, 1));
+			tse.setTotalErrors(randomNumTestsInRange(i, 0));
+			tse.setTotalFailures(randomNumTestsInRange(i, 1));
+			tse.setTotalSkipped(randomNumTestsInRange(i, 0));
 			
-			suiteEntries.add(tse);
+			testEntries.add(tse);
 			
 			timestamp = 
 				timestamp
 					.plusDays(1)
-					.withTime(Rnd.nextInt(12), Rnd.nextInt(60), Rnd.nextInt(60), Rnd.nextInt(1000));
+					.withTime(Rnd.nextInt(12), Rnd.nextInt(59), Rnd.nextInt(59), Rnd.nextInt(999));
+			
+			int createdErrorResults = 0;
+			int createdFailureResults = 0;
+			int createdSkippedTests = 0;
+			
+			for (int j = 0; j<testsInSuite; j++) {
+				/*
+				 * Need to build up from Test Results (but i knew that) ..
+				 */
+				ReportedTestResultEntry tre = new ReportedTestResultEntry();
+				tre.setFailInfo(null);
+				
+				if (createdErrorResults < tse.getTotalErrors()) {
+					FailureInfo fi = 
+						new FailureInfo("Error in Test helper method.", "java.lang.RuntimeException", dummyErrorStack, FailureInfo.Type.error);
+					tre.setFailInfo(fi);
+					createdErrorResults++;
+				} 
+				else if (createdFailureResults < tse.getTotalFailures()) {
+					FailureInfo fi = 
+						new FailureInfo("Numbers should be equal. expected:foo but was:bar", "junit.framework.AssertionFailedError", dummyFailStack, FailureInfo.Type.failure);
+					tre.setFailInfo(fi);
+					createdFailureResults++;
+				} 
+				else if (createdSkippedTests < tse.getTotalSkipped()) {
+					tre.setSkipped(true);
+					createdSkippedTests++;
+				}
+				
+				tre.setMethodName("testMethod_" + j);
+				tre.setQualifiedName(randomQName());
+				tre.setStorageId(UUID.randomUUID());
+				tre.setTime("todo");
+								
+				// then need to add this to test suite and build up results.
+				testEntries.add(tre);
+			}
+			
 		}
 		
-		BatchJdbcImporter.doImport(suiteEntries.stream(), DS, 500);
+		BatchJdbcImporter.doImport(testEntries.stream(), DS, 500);
+	}
+	
+	private String randomQName() {
+		int qNameIndex = Rnd.nextInt(10);
+		return qNames.get(qNameIndex);
 	}
 	
 	/*

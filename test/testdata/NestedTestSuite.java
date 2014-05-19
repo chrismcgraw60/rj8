@@ -6,7 +6,8 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({ 
-	CreateReportTestC.class
+	CreateReportTestC.class,
+	CreateReportTestD_Ignored.class
 })
 
 /**
