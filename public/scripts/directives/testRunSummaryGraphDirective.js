@@ -192,7 +192,7 @@ juaApp.directive('testRunSummaryGraph', ['$window', '$timeout', '$location', fun
                 			 * Navigate to the results page for the clicked test result.
                 			 */
                 			scope.$apply(function() {
-                				$location.path("/testResults");//.replace();
+                				$location.path("/testResults/" + d.id);
                 			});
                 		});
         		}

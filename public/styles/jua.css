@@ -2,7 +2,19 @@ body {
   padding-top: 50px;
 }
 
+/* ********************************************************************************/
+/* Test Suite Result Styles */
 
+.pass{
+	color: green;
+}
+
+.fail{
+	font-weight:bold;
+	color: red;
+}
+
+/* ********************************************************************************/
 /* Summary Graph Styles */
 svg {
 	font: 12px Arial;

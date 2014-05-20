@@ -23,7 +23,7 @@ juaApp.config(['$routeProvider',
     	  templateUrl: 'assets/partials/dashboard.html',
           controller: 'DashboardCtrl'
         }).
-      when('/testResults', {
+      when('/testResults/:suiteId', {
     	templateUrl: 'assets/partials/testSuiteResults.html',
         controller: 'DashboardCtrl'
       }).
