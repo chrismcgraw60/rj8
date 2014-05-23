@@ -89,9 +89,9 @@ public class TestDataGenerator {
 			tse.setTime(randomTimeDuration(testsInSuite));
 			tse.setTimestamp(timestamp);
 			tse.setTestsRun(testsInSuite);
-			tse.setTotalErrors(randomNumTestsInRange(i, 0));
-			tse.setTotalFailures(randomNumTestsInRange(i, 1));
-			tse.setTotalSkipped(randomNumTestsInRange(i, 0));
+			tse.setTotalErrors(randomNumTestsInRange(i, 2));
+			tse.setTotalFailures(randomNumTestsInRange(i, 2));
+			tse.setTotalSkipped(randomNumTestsInRange(i, 1));
 			
 			testEntries.add(tse);
 			
@@ -159,7 +159,6 @@ public class TestDataGenerator {
 		
 		if (failRangeAsPecentageNumTests <= 0) return 0;
 		
-//		System.out.println("numTests:" + numTests + ", %Range:" + percentageRange + ", failRange: " + failRangeAsPecentageNumTests);
 		return (long)Rnd.nextInt(failRangeAsPecentageNumTests);
 		
 	}

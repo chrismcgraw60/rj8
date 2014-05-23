@@ -1,0 +1,64 @@
+<div class="grid-fluid">
+	
+	<h3>Test Results</h3>
+	<table id="testRunGrid" class="table table-striped" style="font: 12px Arial">
+		<thead id="testRunGridHeader">
+			<tr>
+				<td>Run</td>
+				<td>Timestamp</td>
+				<td>Tests Run</td>
+				<td>Errors</td>
+				<td>Failures</td>
+				<td>Skipped</td>
+				<td>Success Rate (%)</td>
+				<td>Time (s)</td>
+			</tr>
+		</thead>
+		<tbody id="testRunGridBody"/>
+	</table>
+	
+	<hr/>
+	
+	<div id="errorsGrid" style="font: 12px Arial; display: none;">
+		<h3>Errors</h3>
+		<table id="errorsGrid" class="table table-striped">
+			<thead id="testResultsGridHeader">
+				<tr>
+					<td>Test</td>
+					<td>Exception</td>
+					<td>Message</td>
+					<td>Time (s)</td>
+				</tr>
+			</thead>
+			<tbody id="errorsGridBody"/>
+		</table>
+	</div>
+	
+	<div id="failsGrid" style="font: 12px Arial; display: none;">
+		<h3>Failures</h3>
+		<table class="table table-striped">
+			<thead id="failsGridHeader">
+				<tr>
+					<td>Test</td>
+					<td>Exception</td>
+					<td>Message</td>
+					<td>Time (s)</td>
+				</tr>
+			</thead>
+			<tbody id="failsGridBody"/>
+		</table>
+	</div>
+	
+	<div id="skippedGrid" style="font: 12px Arial; display: none;">
+		<h3>Skipped</h3>
+		<table class="table table-striped">
+			<thead id="skippedGridHeader">
+				<tr>
+					<td>Test</td>
+				</tr>
+			</thead>
+			<tbody id="skippedGridBody"/>
+		</table>
+	</div>
+	
+</div>

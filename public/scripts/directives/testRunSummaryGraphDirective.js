@@ -136,9 +136,7 @@ juaApp.directive('testRunSummaryGraph', ['$window', '$timeout', '$location', fun
                     		.ticks(5)
         					.tickSize(-width, 0, 0)
         					.tickFormat(""));
-        		
-        		console.log(scope.rowDataResults);
-        		
+        		        		
         		/*
         		 * Plot line of #tests run by date.
         		 */

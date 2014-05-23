@@ -1,11 +1,11 @@
 /**
  * Rendering a Test Result.
  */
-juaApp.directive('testResult', ['$window', '$timeout', '$location', function($window, $timeout, $location) {
+juaApp.directive('latestResults', ['$window', '$timeout', '$location', function($window, $timeout, $location) {
 	return {
         restrict: 'EA',
         transclude: true,
-        templateUrl: 'assets/scripts/directives/testResultTemplate.html',
+        templateUrl: 'assets/scripts/directives/latestResultsGridTemplate.html',
         scope: true, // Prototypical parent scope inheritance.
         
         link: function(scope, element, attrs) {

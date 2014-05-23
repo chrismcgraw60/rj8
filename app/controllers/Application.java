@@ -72,8 +72,6 @@ public class Application extends Controller {
     
     public static WebSocket<String> echo() {
     	
-//    	final Request req = request();
-    	
         return new WebSocket<String>() {
             public void onReady(final In<String> in, final Out<String> out) {
             	in.onMessage(sql -> {
@@ -90,9 +88,6 @@ public class Application extends Controller {
     }
     
     public static WebSocket<String> query() {
-    	
-//    	final Request req = request();
-//    	String query = req.body().asText();
     	
         return new WebSocket<String>() {
             public void onReady(final In<String> in, final Out<String> out) {

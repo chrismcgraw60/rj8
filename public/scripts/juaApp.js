@@ -5,7 +5,9 @@ var juaApp = angular.module('juaApp', [
   'querySocketServices',
   'dashboardControllers',
   'analyseControllers',
-  'manageControllers'
+  'manageControllers',
+  'testRunViewControllers',
+  'testViewControllers'
 ]);
 
 juaApp.config(['$routeProvider',
@@ -23,10 +25,14 @@ juaApp.config(['$routeProvider',
     	  templateUrl: 'assets/partials/dashboard.html',
           controller: 'DashboardCtrl'
         }).
-      when('/testResults/:suiteId', {
-    	templateUrl: 'assets/partials/testSuiteResults.html',
-        controller: 'DashboardCtrl'
+      when('/testResults/:id', {
+    	templateUrl: 'assets/partials/testRunView.html',
+        controller: 'TestRunViewCtrl'
       }).
+      when('/tests/:id', {
+      	templateUrl: 'assets/partials/testView.html',
+          controller: 'TestViewCtrl'
+        }).
       otherwise({
         redirectTo: '/dashboard'
       });

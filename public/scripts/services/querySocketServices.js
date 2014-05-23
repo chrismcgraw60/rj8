@@ -31,17 +31,25 @@ querySocket.factory('adhocQuerySocketService', ['$location',
 		return {
 			/**
 			 * Runs a given query against the server's adhoc query service. The subsequent server interaction
-			 * is relayed to the caller via 4 callback function parameters:
+			 * is relayed to the caller via 4 callback via a paramter object with the following properties:
 			 * 
 			 * - sql : The SQL statement to be run.
-			 * - socketOpenedHandler: called after the server web socket has been opened.
-			 * - socketClosedHandler: called after the server web socket has been closed.
-			 * - metadataHandler: called when the response metadata has been sent by the server. See metadata response above.
-			 * - rowDataHandler: called when the each result data row is sent by the server. See rowData response above.
+			 * - onSocketOpened: called after the server web socket has been opened.
+			 * - onSocketClosed: called after the server web socket has been closed.
+			 * - onMetadata: called when the response metadata has been sent by the server. See metadata response above.
+			 * - onRowData: called when the each result data row is sent by the server. See rowData response above.
 			 *  
 			 *  returns: Nothng.
 			 */
-			query : function (sql, socketOpenedHandler, socketClosedHandler, metadataHandler, rowDataHandler) {
+			query : function (params) {
+				
+				if (!params) {
+					throw "params must not be null.";
+				}
+				
+				if (!params.sql) {
+					throw "params.sql must not be null.";
+				}
 				
 				/*
 				 * 1. Create a websocket request on the well-known query URL. 
@@ -56,8 +64,8 @@ querySocket.factory('adhocQuerySocketService', ['$location',
 					/*
 					 * 3. Invoke callback to notify that web socket is open.
 					 */
-					if (socketOpenedHandler) {
-						socketOpenedHandler();
+					if (params.onSocketOpened) {
+						params.onSocketOpened();
 					}
 				
 					/*
@@ -66,31 +74,31 @@ querySocket.factory('adhocQuerySocketService', ['$location',
 					 *    once it has sent all of its row data for the submitted query.
 					 */
 					ws.onclose = function() {
-						if (socketClosedHandler) {
-							socketClosedHandler();
+						if (params.onSocketClosed) {
+							params.onSocketClosed();
 						}
 					}
 					
 					/*
 					 * 5. Wire up callbacks to handle the 2 different types of messages that 
-					 * the server would send down the web socket.
+					 * the server will send down the web socket.
 					 */
 					ws.onmessage = function(message) {
 						var data = angular.fromJson(message.data);
 						
-						if (data.metadata && metadataHandler) {
+						if (data.metadata && params.onMetadata) {
 							/*
 							 * Handle metadata message.
 							 */
-							metadataHandler(data.metadata);
+							params.onMetadata(data.metadata);
 						}
-						else if (data.row && rowDataHandler) {
+						else if (data.row && params.onRowData) {
 							/*
 							 * Handle row data message.
 							 */
-							rowDataHandler(data.row)
+							params.onRowData(data.row)
 						}
-						else {
+						else if (!data.metadata && !data.row) {
 							/*
 							 * Unknown message, throw an exception.
 							 */
@@ -101,8 +109,8 @@ querySocket.factory('adhocQuerySocketService', ['$location',
 					/*
 					 * 6. All callbacks are wired up. Send the SQL message to the server.
 					 */
-					ws.send(sql);
-				};
-			}
+					ws.send(params.sql);
+				};//ws.onopen
+			}//query:
 		};
 	}]);

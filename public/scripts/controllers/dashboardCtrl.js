@@ -17,25 +17,17 @@ dashboardControllers.controller('DashboardCtrl', ['$scope', 'adhocQuerySocketSer
 	 * Keep it around for reference for time being.
 	 */
 	$scope.doQuery = function(sql) {
-		return adhocQuerySocketService.query(
-			sql,
+		return adhocQuerySocketService.query({
+			sql: sql,
 			
-			function() {
-				/* no-op */
-			},
-			
-			function() {
-				/* no-op */
-			},
-			
-			function(metadata) {
+			onMetadata: function(metadata) {
 				$scope.metadata = metadata;
 			},
 				
-			function(rowData) {
+			onRowData: function(rowData) {
 				$scope.rowDataResults.push({name: rowData[0], score: rowData[1]});
 			}
-		);
+		});
 	};
 	
 	/**
@@ -44,31 +36,22 @@ dashboardControllers.controller('DashboardCtrl', ['$scope', 'adhocQuerySocketSer
 	 * easier to work witj.  
 	 */
 	$scope.doSummaryQuery = function() {
-		return adhocQuerySocketService.query(
-			"SELECT TOP 50 * FROM TESTSUITE ORDER BY TIMESTAMP DESC",
+		return adhocQuerySocketService.query({
+			sql: "SELECT TOP 50 * FROM TESTSUITE ORDER BY TIMESTAMP DESC",
 			
-			/*
-			 * Socket Opened Handler
-			 */
-			function() {
+			onSocketOpened: function() {
 				$scope.isLoadingData = true;
 			},
-			/*
-			 * Socket closed Handler
-			 */
-			function() {
+			
+			onSocketClosed: function() {
 				$scope.isLoadingData = false;
 			},
-			/*
-			 * Metadata Handler.
-			 */
-			function(metadata) {
+			
+			onMetadata: function(metadata) {
 				$scope.metadata = metadata;
 			},
-			/*
-			 * Rowdata Handler.
-			 */
-			function(rowData) {
+			
+			onRowData: function(rowData) {
 				/*
             	 * Date Format eg: 1986-12-26 09:29:29.848
             	 */
@@ -95,14 +78,12 @@ dashboardControllers.controller('DashboardCtrl', ['$scope', 'adhocQuerySocketSer
             	rowData.skipped 	= +(rowData[10]);
             	rowData.timestamp 	= parseDate(rowData[11]);
             	
-            	rowData.passing 	= (rowData.testsRun - (rowData.errors + rowData.failures + rowData.skipped))
+            	rowData.passing 	= (rowData.testsRun - (rowData.errors + rowData.failures + rowData.skipped));
 				
 				$scope.$apply( new function() {
-					console.log("PUSH row:" + rowData);
 					$scope.rowDataResults.push(rowData);
 				});
 			}
-		);
-	};
-	
+		});//adhocQuerySocketService.query
+	};//$scope.doSummaryQuery	
   }]);
