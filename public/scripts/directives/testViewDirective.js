@@ -78,10 +78,16 @@ juaApp.directive('testView', ['$window', '$timeout', '$location', function($wind
         		onClick: calendarClickHandler
         	});
         	
+        	/*
+        	 * Kick off the request to load the test details.
+        	 */
         	scope.getSelectedTest(function(testData) {
 	    		scope.testInfo = testData;
 	    		scope.testInfo.fqn = testData.className + "." + testData.methodName;		
 	    			    			    		
+	    		/*
+	    		 * Once we have loaded the test details, initiate the history request.
+	    		 */
 	    		scope.getTestHistory(testData.className, testData.methodName, 
 	    			function(hItem) {
 	    			
