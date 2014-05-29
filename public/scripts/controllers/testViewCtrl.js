@@ -58,6 +58,7 @@ testViewControllers.controller('TestViewCtrl', ['$scope', '$routeParams', 'adhoc
             	testRunData.status 		= testRunData[1];
             	testRunData.suiteId   	= testRunData[2]
             	testRunData.timeStamp	= parseDate(testRunData[3]);
+            	testRunData.dt			= testRunData[3];
 			
 				$scope.$apply( new function() {
 					testRunLoadedHandler(testRunData);

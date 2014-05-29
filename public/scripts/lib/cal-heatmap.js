@@ -884,9 +884,12 @@ var CalHeatMap = function() {
 		;
 
 		// Appending a title to each subdomain
+		// Chris commented this out as its not relevant for this usage.
+		/*
 		if (!options.tooltip) {
 			rect.append("title").text(function(d){ return self.formatDate(new Date(d.t), options.subDomainDateFormat); });
 		}
+		*/
 
 		// =========================================================================//
 		// PAINTING LABEL															//
