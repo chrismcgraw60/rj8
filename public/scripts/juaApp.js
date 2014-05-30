@@ -33,6 +33,10 @@ juaApp.config(['$routeProvider',
       	templateUrl: 'assets/partials/testView.html',
           controller: 'TestViewCtrl'
         }).
+      when('/compareTests', {
+      	templateUrl: 'assets/partials/compareTestsView.html',
+          controller: 'TestViewCtrl'
+        }).
       otherwise({
         redirectTo: '/dashboard'
       });
