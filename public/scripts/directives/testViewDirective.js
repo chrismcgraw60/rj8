@@ -96,13 +96,8 @@ juaApp.directive('testView', ['$window', '$timeout', '$location', function($wind
 	    				 * We need to consider multiple tests on the same day but this will
 	    				 * do for 1st cut.
 	    				 */
-		    			var date = new Date(hItem.dt);
-		    			date.setHours(0);
-		    			date.setMinutes(0);
-		    			date.setSeconds(0);
-		    			date.setMilliseconds(0);
-		            	var tStamp = new Date(date).getTime()/1000;
-		            	tStamp = Math.floor(tStamp);
+		    			var date = normaliseDateTime(hItem.dt);
+		    			var tStamp = toSeconds(date);		            	
 		            	
 		            	/*
 		            	 * We use arbitrary amounts to signify the various Test Status values
@@ -115,7 +110,7 @@ juaApp.directive('testView', ['$window', '$timeout', '$location', function($wind
 		            	
 		            	/*
 		            	 * This is the format that the heat-map understands.
-		            	 * <timestamp> : amount
+		            	 * <timestamp in seconds> : amount
 		            	 */
 		            	var data = {};	
 		            	data[tStamp] = +s;
@@ -134,6 +129,27 @@ juaApp.directive('testView', ['$window', '$timeout', '$location', function($wind
 	    			}
 	    		);//scope.getTestHistory
 	    	});//scope.getSelectedTest
+        	
+        	/*
+        	 * Return any given date-time with 0h 0m 0s 0ms.
+        	 */
+        	var normaliseDateTime = function(dateTime) {
+        		var date = new Date(dateTime);
+    			date.setHours(0);
+    			date.setMinutes(0);
+    			date.setSeconds(0);
+    			date.setMilliseconds(0);
+            	return date;
+        	}
+        	
+        	/*
+        	 * Return a given dateTime in seconds (floored).
+        	 */
+        	var toSeconds = function(dateTime) {
+        		var tStamp = new Date(dateTime).getTime()/1000;
+            	return  Math.floor(tStamp);
+        	}
+        	
         }//link:
 	}
 }]);
