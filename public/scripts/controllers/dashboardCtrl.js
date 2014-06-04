@@ -33,24 +33,12 @@ dashboardControllers.controller('DashboardCtrl', ['$scope', 'adhocQuerySocketSer
 	/**
 	 * Runs the query to feed the main dashboard summary graph.
 	 * Enhances the standard response rowdata to make the data
-	 * easier to work witj.  
+	 * easier to work with.  
 	 */
-	$scope.doSummaryQuery = function() {
+	$scope.doSummaryQuery = function(range) {
 		return adhocQuerySocketService.query({
-			sql: "SELECT TOP 50 * FROM TESTSUITE ORDER BY TIMESTAMP DESC",
-			
-			onSocketOpened: function() {
-				$scope.isLoadingData = true;
-			},
-			
-			onSocketClosed: function() {
-				$scope.isLoadingData = false;
-			},
-			
-			onMetadata: function(metadata) {
-				$scope.metadata = metadata;
-			},
-			
+			sql: "SELECT TOP " + range + " * FROM TESTSUITE ORDER BY TIMESTAMP DESC",
+						
 			onRowData: function(rowData) {
 				/*
             	 * Date Format eg: 1986-12-26 09:29:29.848
@@ -80,10 +68,20 @@ dashboardControllers.controller('DashboardCtrl', ['$scope', 'adhocQuerySocketSer
             	
             	rowData.passing 	= (rowData.testsRun - (rowData.errors + rowData.failures + rowData.skipped));
 				
-				$scope.$apply( new function() {
-					$scope.rowDataResults.push(rowData);
-				});
+            	$scope.rowDataResults.push(rowData);
+            	if ($scope.rowDataResults.length == range) {
+            		/*
+            		 * The controlled buffers the results and does not call the handler
+            		 * until they are fully loaded. We experimented with batch updates 
+            		 * but the UX is jarring. If we had smoother transitions in the UX
+            		 * then a batch update strategy could be re-implemented.
+            		 * (basically a modulo operation).
+            		 */
+					$scope.$apply( new function() {
+						$scope.summaryUpdateHandler($scope.rowDataResults);
+					});
+            	}
 			}
 		});//adhocQuerySocketService.query
-	};//$scope.doSummaryQuery	
+	};//$scope.doSummaryQuery
   }]);

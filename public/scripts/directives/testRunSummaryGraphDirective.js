@@ -1,8 +1,19 @@
-
+/**
+ * Encapsulates presentation logic for Most Recent Test History.
+ * 
+ * This directive is essentially a wrapper around an interactive D3 based scatter plot graph.
+ * The graph plots (1)#tests in a given run and (2) non-passing tests in a given run. The disparity
+ * between the 2 lines gives a visual indication of test growth and stability over time.
+ * 
+ * When there are few enough data points to be able to show each individual data-point, then the
+ * data point will be represented a solid circle that the user can interact with to get rich hover 
+ * info and also ctrl+click to trigger compare data points. 
+ */
 juaApp.directive('testRunSummaryGraph', ['$window', '$timeout', '$location', function($window, $timeout, $location) {
 	return {
         restrict: 'EA',
         transclude: true,
+        templateUrl: 'assets/scripts/directives/testRunSummaryGraphTemplate.html',
         
         link: function(scope, element, attrs) {
         	
@@ -43,7 +54,7 @@ juaApp.directive('testRunSummaryGraph', ['$window', '$timeout', '$location', fun
         	/*
         	 * Initialize SVG Canvas.
         	 */
-        	var svg = d3.select(element[0])
+        	var svg = d3.select("#scatter-plot")
         		.append("svg")
         		.attr("width", width + margin.left + margin.right)
         		.attr("height", height + margin.top + margin.bottom)
@@ -69,13 +80,13 @@ juaApp.directive('testRunSummaryGraph', ['$window', '$timeout', '$location', fun
         	var resultCountOnLastUpdate = 0;
         	
         	/*
-        	 * Update the graph using the Test Result data on the scope. This data may still be
-        	 * in the process of being populated and so this function periodically invokes 
-        	 * $timeout until such time that it can determine no more data will arriving. 
+        	 * Define a function that will update the plot graph with a new set of test run
+        	 * data points. We will attach this function to the scope so it can be called
+        	 * by any code that intends to load data.
         	 */
-        	var update = function() {
+        	scope.summaryUpdateHandler = function(testRunDataPoints) {
         		
-            	resultCountOnLastUpdate = scope.rowDataResults.length;
+            	resultCountOnLastUpdate = testRunDataPoints.length;
             	
         		/*
         		 * Ensure a clean canvas.
@@ -88,9 +99,9 @@ juaApp.directive('testRunSummaryGraph', ['$window', '$timeout', '$location', fun
         		 * - Full extent of test count along Y with some padding 
         		 *   so min val doesn't start from 0 (unless its 0).
         		 */
-        		x.domain(d3.extent(scope.rowDataResults, function(d) { return d.timestamp; }));
-        		var yMax = d3.max(scope.rowDataResults, function(d) { return d.testsRun; });
-        		var yMin = d3.min(scope.rowDataResults, function(d) { return d.passing; });
+        		x.domain(d3.extent(testRunDataPoints, function(d) { return d.timestamp; }));
+        		var yMax = d3.max(testRunDataPoints, function(d) { return d.testsRun; });
+        		var yMin = d3.min(testRunDataPoints, function(d) { return d.passing; });
         		yMin = (yMin-50 < 0) ? 0 : yMin-50;
         		y.domain([yMin, yMax]);
         		
@@ -141,35 +152,62 @@ juaApp.directive('testRunSummaryGraph', ['$window', '$timeout', '$location', fun
         		 * Plot line of #tests run by date.
         		 */
         		svg.append("path")
-        			.attr("d", valueline(scope.rowDataResults));
+        			.attr("d", valueline(testRunDataPoints));
         		
         		/*
-        		 * Plot scatter of #tests run by date.
-        		 * These will follow the #tests line drawn above.
-        		 * Each point shows a tooltip on mouse-over.
+        		 * Plot scatter of test run data points by date.
+        		 * These should follow the #tests line drawn above.
+        		 * 
+        		 * When the # data points falls below a certain threshold (75),
+        		 * the graph will display selectable points. As the #
+        		 * data points continues to drop then the points become
+        		 * larger and easier to select.
+        		 * 
+        		 * Each point expands and shows a tooltip on mouse-over.
+        		 * Each point detects ctrl + right-click and registers
+        		 * the selected test run data point as either a compare 
+        		 * target
         		 */
-        		if (scope.rowDataResults.length <= 50) {
+        		var computeRadius = function() {
+        			if (testRunDataPoints.length < 10) { return 12; }
+        			else if (testRunDataPoints.length < 15) { return 10; }
+        			else if (testRunDataPoints.length < 20) { return 8; }
+    				else if (testRunDataPoints.length < 25) { return 7; }
+    				else if (testRunDataPoints.length < 30) { return 6; }
+    				else if (testRunDataPoints.length < 35) { return 5; }
+    				else if (testRunDataPoints.length < 40) { return 4; }
+    				else if (testRunDataPoints.length < 50) { return 3.5; }
+    				else if (testRunDataPoints.length < 60) { return 2.5; }
+    				else if (testRunDataPoints.length < 70) { return 2; }
+    				else if (testRunDataPoints.length < 80) { return 1.5; }
+        		};
+        		
+        		var computeRadiusOnMouseOver = function() {
+        			return computeRadius() + 5;
+        		};
+        			
+        		if (testRunDataPoints.length <= 75) {
             		svg.selectAll("dot")
-            			.data(scope.rowDataResults)
+            		.data(testRunDataPoints)
             		.enter().append("circle")
-            			.attr("r", 3.5)
+            			.attr("r", computeRadius)
             			.attr("cx", function(d) { return x(d.timestamp); })
             			.attr("cy", function(d) { return y(d.testsRun); })
             			.style("fill", function(d) { return (d.errors > 0 || d.failures > 0) ? "DarkRed": "Green"; })
                 		.on("mouseover", function(d) {
                 			/*
-                			 * When we  mouse over a scatter plot circle, we expand it out and show the tooltip.
+                			 * Expand the scatter plot out and show the tooltip.
                 			 */
                 			d3.select(this)
             					.transition()
             					.duration(200)
-            					.attr("r", 10);
+            					.attr("r", computeRadiusOnMouseOver);
                 			toolTipDiv.transition()
                 				.duration(200)
                 				.style("opacity", .91);
                 			toolTipDiv
                 				.html(renderTooltip(d))
-                				.style("left", (d3.event.pageX) + "px")
+                				.style("left", (d3.event.pageX + 10) + "px")
                 				.style("top", (d3.event.pageY - 28) + "px");
                 		})
                 		.on("mouseout", function(d) {
@@ -180,18 +218,23 @@ juaApp.directive('testRunSummaryGraph', ['$window', '$timeout', '$location', fun
                 			d3.select(this)
                 				.transition()
                 				.duration(500)
-                				.attr("r", 3.5);
+                				.attr("r", computeRadius);
                 			toolTipDiv.transition()
                 				.duration(500)
                 				.style("opacity", 0);
                 		})
                 		.on("click", function(d) {
-                			/*
-                			 * Navigate to the results page for the clicked test result.
-                			 */
-                			scope.$apply(function() {
-                				$location.path("/testResults/" + d.id);
-                			});
+                			if (d3.event.ctrlKey) {
+                				console.log("Compare Selection: " + d.id);
+                			}
+                			else {
+	                			/*
+	                			 * Navigate to the results page for the clicked test result.
+	                			 */
+	                			scope.$apply(function() {
+	                				$location.path("/testResults/" + d.id);
+	                			});
+                			}
                 		});
         		}
         	
@@ -203,30 +246,13 @@ juaApp.directive('testRunSummaryGraph', ['$window', '$timeout', '$location', fun
         		 */
         		svg.append("path")
         			.attr("class", "pass-path")
-        			.attr("d", passingLine(scope.rowDataResults));
-        		
-        		/*
-        		 * Reset the timer for next UI update.
-        		 * See comment for var resultCountOnLastUpdate.
-        		 */
-        		if (scope.isLoadingData || resultCountOnLastUpdate < scope.rowDataResults.length) {
-        			$timeout(update, 50);
-        		}	
-            		                		
+        			.attr("d", passingLine(scope.rowDataResults));           		                		
             };
-            
+                       
         	/*
         	 * Browser on-resize event.
         	 */ 
             window.onresize = function() { scope.$apply(); };
-            /*
-             * Request the Test Result data.
-             */
-            scope.doSummaryQuery();
-            /*
-             * Schedule the 1st UI update.
-             */
-            $timeout(update, 50);
             
             /**************************************************************************************
              * TOOL-TIP RENDERING
@@ -262,6 +288,7 @@ juaApp.directive('testRunSummaryGraph', ['$window', '$timeout', '$location', fun
             				
             	return html;
             };
-        }
+            
+        }//link
 	}
 }]);
