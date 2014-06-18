@@ -60,14 +60,6 @@ juaApp.directive('testRunSummaryGraph', ['$window', '$timeout', '$location', fun
         		.attr("height", height + margin.top + margin.bottom)
         		.append("g")
         		.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-        	
-            /*
-        	 * Set up a div to be used as the Tooltip.
-        	 */
-        	var toolTipDiv = d3.select(element[0])
-        		.append("div")
-        		.attr("class", "tooltip")
-        		.style("opacity", 0);
         	        	
         	/*
         	 * We remember the size of the data from the last time we bound to it.
@@ -158,91 +150,52 @@ juaApp.directive('testRunSummaryGraph', ['$window', '$timeout', '$location', fun
         		 * Plot scatter of test run data points by date.
         		 * These should follow the #tests line drawn above.
         		 * 
-        		 * When the # data points falls below a certain threshold (75),
-        		 * the graph will display selectable points. As the #
-        		 * data points continues to drop then the points become
-        		 * larger and easier to select.
+        		 * When the # data points falls below a certain threshold (75), the graph will display selectable points. 
+        		 * As the # data points continues to drop then the points become larger and easier to select.
         		 * 
-        		 * Each point expands and shows a tooltip on mouse-over.
-        		 * Each point detects ctrl + right-click and registers
-        		 * the selected test run data point as either a compare 
-        		 * target
+        		 * Each point expands and shows a tooltip on mouse-over. Each point detects ctrl + right-click and registers
+        		 * the selected test run data point as either a compare target, or if it is already registered, it is
+        		 * unregistered.
         		 */
-        		var computeRadius = function() {
-        			if (testRunDataPoints.length < 10) { return 12; }
-        			else if (testRunDataPoints.length < 15) { return 10; }
-        			else if (testRunDataPoints.length < 20) { return 8; }
-    				else if (testRunDataPoints.length < 25) { return 7; }
-    				else if (testRunDataPoints.length < 30) { return 6; }
-    				else if (testRunDataPoints.length < 35) { return 5; }
-    				else if (testRunDataPoints.length < 40) { return 4; }
-    				else if (testRunDataPoints.length < 50) { return 3.5; }
-    				else if (testRunDataPoints.length < 60) { return 2.5; }
-    				else if (testRunDataPoints.length < 70) { return 2; }
-    				else if (testRunDataPoints.length < 80) { return 1.5; }
-        		};
-        		
-        		var computeRadiusOnMouseOver = function() {
-        			return computeRadius() + 5;
-        		};
-        			
         		if (testRunDataPoints.length <= 75) {
             		svg.selectAll("dot")
             		.data(testRunDataPoints)
             		.enter().append("circle")
-            			.attr("r", computeRadius)
+            			.attr("r", computeNormalRadius(testRunDataPoints))
             			.attr("cx", function(d) { return x(d.timestamp); })
             			.attr("cy", function(d) { return y(d.testsRun); })
-            			.style("fill", function(d) { return (d.errors > 0 || d.failures > 0) ? "DarkRed": "Green"; })
+            			.style("fill", function(d) { return computeFill(this, d, testRunDataPoints); })
                 		.on("mouseover", function(d) {
-                			/*
-                			 * Expand the scatter plot out and show the tooltip.
-                			 */
-                			d3.select(this)
-            					.transition()
-            					.duration(200)
-            					.attr("r", computeRadiusOnMouseOver);
-                			toolTipDiv.transition()
-                				.duration(200)
-                				.style("opacity", .91);
-                			toolTipDiv
-                				.html(renderTooltip(d))
-                				.style("left", (d3.event.pageX + 10) + "px")
-                				.style("top", (d3.event.pageY - 28) + "px");
+                			expandPlot(this, testRunDataPoints);
+                			toolTipIn(d);
                 		})
                 		.on("mouseout", function(d) {
-                			/*
-                			 * Shrink the scatter plot circle to its original size 
-                			 * and hide the tool-tip.
-                			 */
-                			d3.select(this)
-                				.transition()
-                				.duration(500)
-                				.attr("r", computeRadius);
-                			toolTipDiv.transition()
-                				.duration(500)
-                				.style("opacity", 0);
+                			if (!isSelectedforCompare(d)) {
+                				shrinkPlot(this, testRunDataPoints);
+                			}
+                			toolTipOut();
                 		})
                 		.on("click", function(d) {
-                			if (d3.event.ctrlKey) {
-                				console.log("Compare Selection: " + d.id);
-                			}
-                			else {
-	                			/*
-	                			 * Navigate to the results page for the clicked test result.
-	                			 */
-	                			scope.$apply(function() {
-	                				$location.path("/testResults/" + d.id);
-	                			});
-                			}
+            				if (d3.event.ctrlKey) { 
+            					handleCtrlClick(this, d, testRunDataPoints); 
+            				}
+            				else { 
+            					scope.$apply(function() { 
+            						$location.path("/testResults/" + d.id); 
+            					}); 
+            				}
+                		})
+                		.on("contextmenu", function(d) {
+                			scope.$apply(function() { 
+                				showCompareContext(d);
+                				toolTipOut();
+                			});
                 		});
         		}
         	
         		/*
-        		 * Plot line #test passes on given date.
-        		 * If there are any fails / errors / skipped then this will
-        		 * bump along under the #tests line (which should only change
-        		 * gradually).
+        		 * Plot line #test passes on given date. If there are any fails / errors / skipped then this will
+        		 * bump along under the #tests line (which should only change gradually).
         		 */
         		svg.append("path")
         			.attr("class", "pass-path")
@@ -255,9 +208,140 @@ juaApp.directive('testRunSummaryGraph', ['$window', '$timeout', '$location', fun
             window.onresize = function() { scope.$apply(); };
             
             /**************************************************************************************
-             * TOOL-TIP RENDERING
+             * SCATTER PLOTS - Manipulation
+             * Change appearance of plotted test runs.
+             */
+            
+            var computeFill = function(element, d, dp) {
+            	if (isSelectedforCompare(d)) {
+            		return renderPlotAsSelected(element, d, dp);
+            	} 
+            	else {
+            		return (d.errors > 0 || d.failures > 0) ? "DarkRed": "Green";
+            	}
+            };
+            
+    		var computeNormalRadius = function(dp) {
+    			if (dp.length < 10) { return 12; }
+    			else if (dp.length < 15) { return 10; }
+    			else if (dp.length < 20) { return 8; }
+				else if (dp.length < 25) { return 7; }
+				else if (dp.length < 30) { return 6; }
+				else if (dp.length < 35) { return 5; }
+				else if (dp.length < 40) { return 4; }
+				else if (dp.length < 50) { return 3.5; }
+				else if (dp.length < 60) { return 2.5; }
+				else if (dp.length < 70) { return 2; }
+				else if (dp.length < 80) { return 1.5; }
+    		};
+    		
+    		var computeExpandedRadiusOnMouseOver = function(dp) {
+    			return computeNormalRadius(dp) + 5;
+    		};
+    		
+            var expandPlot = function(element, dp) {
+            	d3.select(element)
+					.transition()
+					.duration(200)
+					.attr("r", computeExpandedRadiusOnMouseOver(dp));
+            };
+            
+            var shrinkPlot = function(element, dp) {
+            	d3.select(element)
+					.transition()
+					.duration(500)
+					.attr("r", computeNormalRadius(dp));
+            };
+            
+            
+            /**************************************************************************************
+             * CTRL+CLICK HANDLING
+             * Capture selected Test Runs for compare.
+             */
+            
+        	scope.compareInfo = {
+        		compareUrl: null,
+        		left: null,
+        		right: null,
+        	};
+        	
+            var renderPlotAsSelected = function(element, d, dp) {
+            	d3.select(element)
+            		.style("fill", "Black")
+            		.attr("r", computeExpandedRadiusOnMouseOver(dp));
+//					.transition()
+//					.duration(200)
+//					.attr("r", computeExpandedRadiusOnMouseOver(dp));
+            };
+            
+            var renderPlotAsUnselected = function(element, d, dp) {
+            	d3.select(element)
+            		.style("fill", function(d) { return (d.errors > 0 || d.failures > 0) ? "DarkRed": "Green"; })
+					.transition()
+					.duration(200)
+					.attr("r", computeNormalRadius(dp));
+            };
+            
+            var isSelectedforCompare = function(d) {
+            	return (scope.compareInfo.left != null && scope.compareInfo.left.data.id == d.id ||
+            			scope.compareInfo.right != null && scope.compareInfo.right.data.id == d.id);
+            };
+        	
+            var handleCtrlClick = function(element, d, dp) {
+            	/*
+            	 * Register with Compare
+            	 */
+    			if (!scope.compareInfo.left) { 
+    				scope.compareInfo.left = {};
+    				scope.compareInfo.left.data = d;
+    				scope.compareInfo.left.element = element;
+    				renderPlotAsSelected(element, d, dp);
+    			}
+    			else if (scope.compareInfo.left && scope.compareInfo.left.data.id == d.id) { 
+    				renderPlotAsUnselected(element, d, dp);
+    				scope.compareInfo.left = null; 
+    			}
+    			else if (!scope.compareInfo.right) { 
+    				scope.compareInfo.right = {};
+    				scope.compareInfo.right.data  = d; 
+    				scope.compareInfo.right.element = element;
+    				renderPlotAsSelected(element, d, dp);
+    			}
+    			else if (scope.compareInfo.right && scope.compareInfo.right.data.id == d.id) { 
+    				renderPlotAsUnselected(element, d, dp);    				
+    				scope.compareInfo.right = null; 
+    			}
+            };
+            
+            /**************************************************************************************
+             * TOOL-TIP Transition & RENDERING
              * TODO: Encapsulate in a dedicated directive.
              */
+            /*
+        	 * Set up a div to be used as the Tooltip.
+        	 */
+        	var toolTipDiv = d3.select(element[0])
+        		.append("div")
+        		.attr("class", "tooltip")
+        		.style("opacity", 0);
+        	
+            var toolTipIn = function(d) {
+    			toolTipDiv.transition()
+					.duration(200)
+					.style("opacity", .91);
+    			
+    			toolTipDiv
+					.html(renderTooltip(d))
+					.style("left", (d3.event.pageX + 10) + "px")
+					.style("top", (d3.event.pageY - 28) + "px");
+            }
+            
+            var toolTipOut = function() {
+            	toolTipDiv
+            		.transition() 
+            		.duration(500) 
+            		.style("opacity", 0);
+            };
             
         	/*
         	 * Date Time format for Tooltip.
@@ -288,6 +372,27 @@ juaApp.directive('testRunSummaryGraph', ['$window', '$timeout', '$location', fun
             				
             	return html;
             };
+            
+            /**************************************************************************
+            * COMPARE CONTEXT
+            */
+            
+            var showCompareContext = function(d) {
+                d3.event.preventDefault();
+                $(".custom-menu")
+            	.toggle(500)
+            	.css({
+            		top: d3.event.pageY  - 18 + "px",
+            		left: d3.event.pageX + 15 + "px"
+            	});
+            };
+            
+            var hideCompareContext = function(event) {
+            	$(".custom-menu").hide(100);
+            };
+
+            // Hide the tool-tip if we click somewhere else.
+            $("#scatter-plot").on("mousedown", hideCompareContext);
             
         }//link
 	}

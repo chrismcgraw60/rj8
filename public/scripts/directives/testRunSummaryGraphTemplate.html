@@ -1,10 +1,16 @@
 <div class="grid-fluid">
-	
+	<div><a href="#compareSuites?from={{compareInfo.left.data.id}}&to={{compareInfo.right.data.id}}">Compare</a></div>
 	<div id="scatter-plot" class="col-md-8"></div>
-	<div class="col-md-4" style="padding-top: 30px; padding-bottom: 30px; height:240px; width:20px">
-		<test-run-summary-slider style="height:240px; width:16px"></test-run-summary-slider>
+	<div class="col-md-1" style="padding-top: 30px; padding-bottom: 30px; height:305px; width:50px">
+		<test-run-summary-slider ></test-run-summary-slider>
 	</div>
 	
 </div>
+
+<ul class='custom-menu'>
+  <div>From: {{compareInfo.left.data.timestamp}} ({{compareInfo.left.data.file}})</div>
+  <div>To: {{compareInfo.right.data.timestamp}} ({{compareInfo.right.data.file}})</div>
+  <div><a id="scatter-plot-compare" ng-href="#compareSuites?from={{compareInfo.left.data.id}}&to={{compareInfo.right.data.id}}">Compare</a></div>
+</ul>
 
 

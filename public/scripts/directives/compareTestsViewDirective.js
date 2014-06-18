@@ -8,7 +8,7 @@ juaApp.directive('compareTestsView', ['$window', '$timeout', '$location', functi
         
         link: function(scope, element, attrs) {
         	
-        	console.log("executing compareTestsView.link .. ")
+        	console.log("executing compareTestSuitesView.link .. ")
         	
         }//link:
 	}

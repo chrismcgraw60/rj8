@@ -57,3 +57,30 @@ div.tooltip {
 	border-radius: 8px;
 	pointer-events: none;
 }
+
+/* ********************************************************************************/
+/* Compare Widget / Mouse Over Styles */
+.custom-menu {
+    display: none;
+    z-index:1000;
+    position: absolute;
+    font: 12px sans-serif;
+	background: white;
+	border: 1px;
+	border-style: solid;
+	border-color: lightsteelblue;
+	border-radius: 8px;
+	opacity: 0.91;
+}
+
+.custom-menu li {
+    padding: 5px;
+}
+
+.custom-menu li:hover {
+    background-color: #DDD;
+    cursor: pointer;
+}
+
+ 
+

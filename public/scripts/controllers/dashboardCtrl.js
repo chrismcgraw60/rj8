@@ -71,8 +71,8 @@ dashboardControllers.controller('DashboardCtrl', ['$scope', 'adhocQuerySocketSer
             	$scope.rowDataResults.push(rowData);
             	if ($scope.rowDataResults.length == range) {
             		/*
-            		 * The controlled buffers the results and does not call the handler
-            		 * until they are fully loaded. We experimented with batch updates 
+            		 * The controller buffers the results and does not call the handler
+            		 * until all the data is loaded. We experimented with batch updates 
             		 * but the UX is jarring. If we had smoother transitions in the UX
             		 * then a batch update strategy could be re-implemented.
             		 * (basically a modulo operation).
