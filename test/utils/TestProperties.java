@@ -28,6 +28,9 @@ public class TestProperties {
 	private static final String bulkDataNumTestReports = "bulk.numTestReports";
 	private static final String bulkDataNumTestReports_default = "2";
 	
+	private static final String filewatchRootFolder = "filewatch.root";
+	private static final String filewatchRootFolder_default = "tmp";
+	
 	private final Properties props;
 	
 	/*
@@ -58,6 +61,13 @@ public class TestProperties {
 	 */
 	public Integer getBulkNumTestReports() {
 		return Integer.parseInt(props.getProperty(bulkDataNumTestReports, bulkDataNumTestReports_default));
+	}
+	
+	/**
+	 * @return The file path of the root folder where filewatch tests will run.
+	 */
+	public String getFileWatchRootFolder() {
+		return props.getProperty(filewatchRootFolder, filewatchRootFolder_default);
 	}
 	
 	private static synchronized TestProperties initialise() {

@@ -4,6 +4,7 @@ import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.*;
 import importer.ReportedTestResultEntry.FailureInfo;
 
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -19,7 +20,7 @@ public class ReportParserTest {
 	public void testParse() throws Exception {
 		ImportSource is = TestDataInfo.getImportSource();
 		String testReportPath = is.computePaths().sorted().findFirst().get();
-		Stream<ReportedTestElement> parsedElements = ReportParser.parse(testReportPath);
+		Stream<ReportedTestElement> parsedElements = new ReportParser().parse(Paths.get(testReportPath));
 		
 		Map<Class<? extends ReportedTestElement>, List<ReportedTestElement>> elemsByClass = 
 				parsedElements.collect(Collectors.groupingBy(rte -> rte.getClass()));

@@ -22,3 +22,4 @@ activator-sbt*-shim.sbt
 /start-activator.sh~
 /start-h2.sh~
 /setup-activator.sh~
+/refresh-eclipse.sh~

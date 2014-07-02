@@ -6,6 +6,8 @@ import importer.ReportParser;
 import importer.integration.bulkdata.BulkTestReportGenerator.BulkDataInfo;
 import importer.jdbc.BatchJdbcImporter;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -47,8 +49,8 @@ public class ReportParserBulkTest {
 				Integer importedRowCount = 
 					bulkTestFilePaths()
 					.parallel()
-					.map(filePath -> ReportParser.parse(filePath))
-					.map(testResults -> BatchJdbcImporter.doImport(testResults, DS, 1000))
+					.map(filePath -> new ReportParser().parse(filePath))
+					.map(testResults -> new BatchJdbcImporter(DS, 1000).doImport(testResults))
 					.collect(Collectors.summingInt(i -> i));
 				
 				return importedRowCount;
@@ -63,8 +65,8 @@ public class ReportParserBulkTest {
 	/*
 	 * Compute stream of file paths that represent Test Report sample data. 
 	 */
-	private Stream<String> bulkTestFilePaths() {
+	private Stream<Path> bulkTestFilePaths() {
 		ImportSource is = new ImportSource(bulkTestData.rootFolder.getAbsolutePath());
-		return is.computePaths();
+		return is.computePaths().map(s -> Paths.get(s));
 	}
 }

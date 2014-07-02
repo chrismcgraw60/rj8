@@ -1,5 +1,6 @@
 package importer.jdbc;
 
+import importer.IBatchImporter;
 import importer.ReportedTestElement;
 import importer.ReportedTestResultEntry;
 import importer.ReportedTestResultEntry.FailureInfo;
@@ -25,25 +26,35 @@ import com.google.common.base.Throwables;
  * FROM TESTENTRY INNER JOIN TESTSUITE ON TESTENTRY.SUITE_ID = TESTSUITE.ID  
  * WHERE TESTENTRY.SUITE_ID = 3
  */
-public class BatchJdbcImporter {
+public class BatchJdbcImporter implements IBatchImporter {
 
 	private static final String insertTestCaseSQL = 
 			"insert into testEntry (uuid, className, methodName, time, status, failexception, failmessage, faildetail, suite_id) values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	private static final String insertTestSuiteSQL = 
 			"insert into testSuite (uuid, packageName, className, time, folder, file, tests, failures, errors, skipped, timestamp) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	
+	private final DataSource ds;
+	private final int importBatchSize;
+	
 	/**
-	 * Import a given {@link Stream} of {@link ReportedTestElement}s to a database.
-	 * @param testCaseEntries The {@link ReportedTestElement}s to be imported. Must not be null.
+	 * 
 	 * @param ds The target {@link DataSource}s for the import. Must not be null.
-	 * @param batchSize Controls the size of the INSERT batch that is sent to the database. Must be > 0.
-	 * @return The # of imported elements.
+	 * @param importBatchSize Controls the size of the INSERT batch that is sent to the database. Must be > 0.
 	 */
-	public static int doImport(Stream<ReportedTestElement> testCaseEntries, DataSource ds, int batchSize) {
-		Preconditions.checkNotNull(testCaseEntries, "testCaseEntries must not be null.");
+	public BatchJdbcImporter(DataSource ds, int importBatchSize) {
 		Preconditions.checkNotNull(ds, "ds must not be null.");
-		Preconditions.checkArgument(batchSize > 0, "batchSize must be greater than 0.");
+		Preconditions.checkArgument(importBatchSize > 0, "batchSize must be greater than 0.");
 		
+		this.ds = ds;
+		this.importBatchSize = importBatchSize;
+	}
+	
+	/* (non-Javadoc)
+	 * @see importer.jdbc.IBatchImporter#doImport(java.util.stream.Stream, javax.sql.DataSource, int)
+	 */
+	@Override
+	public int doImport(Stream<ReportedTestElement> testCaseEntries) {
+		Preconditions.checkNotNull(testCaseEntries, "testCaseEntries must not be null.");
 		Integer count = 0;
 				
 		try {
@@ -72,7 +83,7 @@ public class BatchJdbcImporter {
 						/*
 						 * Send bulk insert to DB if we hit the batch limit.
 						 */
-						if(++count % batchSize == 0) {
+						if(++count % importBatchSize == 0) {
 					    	insertTestCaseStmt.executeBatch();
 					    }
 					}

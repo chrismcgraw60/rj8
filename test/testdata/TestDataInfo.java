@@ -14,8 +14,10 @@ import importer.ImportSource;
  */
 public class TestDataInfo {
 	public static final String testDataFolderName = "ant-test-results";
+	public static final String malformedDataFolderName = "malformed-data";
 	public static final String testDataFolderPath = "/test/";
 	public static final String testDataFile = "TEST-testdata.AllTests.xml";
+	public static final String malformedDataFile = "malformed-import-file.txt";
 	public static final DateTime testDataSuiteTimeStamp = DateTime.parse("2014-05-19T08:45:56");
 	
 	/**
@@ -33,6 +35,16 @@ public class TestDataInfo {
 	 */
 	public static String getTestReportFilePath() {
 		return getTestReportFolderPath() + "/" + testDataFile;
+	}
+	
+	/**
+	 * @return The path to a file that will through an Exception in the report parser.
+	 */
+	public static String getMalformedReportFilePath() {
+		URL here = ClassLoader.getSystemResource(".");
+		File fHere = new File(here.getPath());
+		String path = fHere.getParentFile().getAbsoluteFile() + testDataFolderPath + malformedDataFolderName + "/" + malformedDataFile;
+		return path;
 	}
 	
 	/**

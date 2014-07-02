@@ -139,7 +139,7 @@ public class TestDataGenerator {
 			
 		}
 		
-		BatchJdbcImporter.doImport(testEntries.stream(), DS, 500);
+		new BatchJdbcImporter(DS, 500).doImport(testEntries.stream());
 	}
 	
 	private String randomQName() {

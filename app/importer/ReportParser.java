@@ -2,9 +2,11 @@ package importer;
 
 import importer.ReportedTestResultEntry.FailureInfo;
 
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
@@ -17,6 +19,8 @@ import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
+
+import jdk.internal.org.xml.sax.XMLReader;
 
 import org.joda.time.DateTime;
 
@@ -138,6 +142,8 @@ public class ReportParser {
 	private static final String type = "type";
 	private static final String timestampAttr = "timestamp";
 	
+	private static final XMLInputFactory inputFactory = XMLInputFactory.newInstance();
+	
 	public static class ImportResult {
 		
 		public ImportResult(Integer importedEntryCount, Long timeTakenSeconds, Stream<ReportedTestElement> importedElements) {
@@ -150,13 +156,14 @@ public class ReportParser {
 		public Stream<ReportedTestElement> importedElements;
 	}
 	
-	public static Stream<ReportedTestElement> parse(String fileLocation) {
+	public Stream<ReportedTestElement> parse(Path fileLocation) {
 		Preconditions.checkNotNull(fileLocation, "Argument fileLocation must not be null");
 		
-		final XMLEventReader eventReader = initialiseEventReader(fileLocation);
-		List<ReportedTestElement> testElements = Lists.newArrayList();
+		final List<ReportedTestElement> testElements = Lists.newArrayList();
 		
-		try {
+		try (BufferedReader bs = Files.newBufferedReader(fileLocation, StandardCharsets.UTF_8);
+				AutoCloseEventReader eventReader = newEventReader(bs)) {
+
 			while (eventReader.hasNext()) {
 				XMLEvent event = eventReader.nextEvent();
 				
@@ -184,9 +191,9 @@ public class ReportParser {
 		return testElements.stream();
 	}
 
-	private static void setFileAndFolderFromSubmittedFileLocation(String fileLocation, ReportedTestSuiteEntry suiteEntry) {
+	private static void setFileAndFolderFromSubmittedFileLocation(Path fileLocation, ReportedTestSuiteEntry suiteEntry) {
 		
-		File reportFile = new File(fileLocation);
+		File reportFile = fileLocation.toFile();
 		if (!reportFile.isFile()) {
 			throw new IllegalArgumentException("File Location refer to a valid File: " + fileLocation + ".");
 		}
@@ -323,22 +330,50 @@ public class ReportParser {
 		}
 		return testSuiteEntry;
 	}
-
-	/*
-	 *  Setup a new EventReader.
-	 */
-	private static XMLEventReader initialiseEventReader(String fileLocation) {
-		
-		XMLEventReader eventReader = null;
+	
+	private static AutoCloseableEventReader newEventReader(BufferedReader br){
+		XMLEventReader er = null;
 		try {
-			XMLInputFactory inputFactory = XMLInputFactory.newInstance();
-			InputStream in = new FileInputStream(fileLocation);
-			eventReader = inputFactory.createXMLEventReader(in);
+			er = inputFactory.createXMLEventReader(br);
+			return new AutoCloseableEventReader(er);
+		} catch (XMLStreamException e) {
+			Throwables.propagate(e);
 		}
-		catch(Exception ex) {
-			Throwables.propagate(ex);
-		}
-		return eventReader;
+		return null;
+	}
+	
+	/**
+	 * Convenience interface to bundle up {@link XMLReader} and {@link AutoCloseable} interfaces. 
+	 * This gives us a cleaner flow in the main parsing logic.
+	 */
+	private static interface AutoCloseEventReader extends XMLEventReader, AutoCloseable {}
+	
+	/**
+	 * Implements {@link AutoCloseEventReader} by wrapping an {@link XMLEventReader}.
+	 * The {@link AutoCloseable#close()} will be dispatched to {@link XMLEventReader#close()}. 
+	 */
+	private static class AutoCloseableEventReader implements AutoCloseEventReader {
+		
+		final XMLEventReader wrapped;
+		
+		AutoCloseableEventReader(XMLEventReader wrapped) { this.wrapped = wrapped; }
+
+		@Override public Object next() { return wrapped.next(); }
+
+		@Override public void close() throws XMLStreamException { wrapped.close(); }
+
+		@Override public String getElementText() throws XMLStreamException { return wrapped.getElementText(); }
+
+		@Override public Object getProperty(String arg0) throws IllegalArgumentException {return wrapped.getProperty(arg0); }
+
+		@Override public boolean hasNext() {return wrapped.hasNext(); }
+
+		@Override public XMLEvent nextEvent() throws XMLStreamException { return wrapped.nextEvent(); }
+
+		@Override public XMLEvent nextTag() throws XMLStreamException { return wrapped.nextTag(); }
+
+		@Override public XMLEvent peek() throws XMLStreamException { return wrapped.peek(); }
+		
 	}
 	
 }
