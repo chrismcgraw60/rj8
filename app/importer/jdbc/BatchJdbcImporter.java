@@ -1,5 +1,7 @@
 package importer.jdbc;
 
+import folderManager.Folder;
+import folderManager.IFolderData;
 import importer.IBatchImporter;
 import importer.ReportedTestElement;
 import importer.ReportedTestResultEntry;
@@ -31,21 +33,25 @@ public class BatchJdbcImporter implements IBatchImporter {
 	private static final String insertTestCaseSQL = 
 			"insert into testEntry (uuid, className, methodName, time, status, failexception, failmessage, faildetail, suite_id) values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	private static final String insertTestSuiteSQL = 
-			"insert into testSuite (uuid, packageName, className, time, folder, file, tests, failures, errors, skipped, timestamp) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			"insert into testSuite (uuid, packageName, className, time, folder, file, tests, failures, errors, skipped, timestamp, folder_id) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	
 	private final DataSource ds;
+	private final IFolderData folderData;
 	private final int importBatchSize;
 	
 	/**
 	 * 
 	 * @param ds The target {@link DataSource}s for the import. Must not be null.
+	 * @param folderData Used to manage Folder data in the DBs.
 	 * @param importBatchSize Controls the size of the INSERT batch that is sent to the database. Must be > 0.
 	 */
-	public BatchJdbcImporter(DataSource ds, int importBatchSize) {
+	public BatchJdbcImporter(DataSource ds, IFolderData folderData, int importBatchSize) {
 		Preconditions.checkNotNull(ds, "ds must not be null.");
+		Preconditions.checkNotNull(folderData, "folderData must not be null.");
 		Preconditions.checkArgument(importBatchSize > 0, "batchSize must be greater than 0.");
 		
 		this.ds = ds;
+		this.folderData = folderData;
 		this.importBatchSize = importBatchSize;
 	}
 	
@@ -125,14 +131,14 @@ public class BatchJdbcImporter implements IBatchImporter {
 		insertTestCase.addBatch();
 	}
 
-	private static Long insertTestSuiteEntryAndReturnID(PreparedStatement insertTestSuite, ReportedTestElement te)
+	private Long insertTestSuiteEntryAndReturnID(PreparedStatement insertTestSuite, ReportedTestElement te)
 			throws SQLException {
 		ReportedTestSuiteEntry tse = (ReportedTestSuiteEntry)te;
 		insertTestSuite.setString(1, tse.getStorageId().toString());
 		insertTestSuite.setString(2, tse.getPackageName());
 		insertTestSuite.setString(3, tse.getLocalTestCaseName());
 		insertTestSuite.setString(4, tse.getTime());
-		insertTestSuite.setString(5, tse.getContainingFolder());
+		insertTestSuite.setString(5, tse.getContainingFolder().toString());
 		insertTestSuite.setString(6, tse.getContainingFile());
 		
 		
@@ -142,6 +148,9 @@ public class BatchJdbcImporter implements IBatchImporter {
 		insertTestSuite.setLong(10, tse.getTotalSkipped());
 		
 		insertTestSuite.setTimestamp(11,  new Timestamp(tse.getTimestamp().getMillis()));
+		
+		Folder parentFolder = folderData.getFolder(tse.getContainingFolder(), true);
+		insertTestSuite.setLong(12, parentFolder.getId());
 		
 		Long idOfInsertedRecord = null;
 		

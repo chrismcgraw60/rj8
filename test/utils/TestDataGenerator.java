@@ -1,11 +1,14 @@
 package utils;
 
+import importer.IBatchImporter;
 import importer.ReportedTestElement;
 import importer.ReportedTestResultEntry;
 import importer.ReportedTestResultEntry.FailureInfo;
 import importer.ReportedTestSuiteEntry;
 import importer.jdbc.BatchJdbcImporter;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -21,6 +24,10 @@ import org.junit.Test;
 import com.google.common.collect.Lists;
 import com.jolbox.bonecp.BoneCPDataSource;
 
+import folderManager.Folder;
+import folderManager.IFolderData;
+import folderManager.JdbcFolderData;
+
 /**
  * Injects test data directly into the DB.
  *
@@ -31,7 +38,7 @@ public class TestDataGenerator {
 	private static Random Rnd = new Random();
 	private static final String deleteTestSuiteDataSQL = "delete from testSuite";
 	
-	private static final String folder = "/testFolder";
+	private static final Path folderPath = Paths.get("/testFolder");
 	private static final String qualifiedSuiteName = "com.chris.AllTests";
 	private static final String fileTemplate = "TEST-dev_{$id}.xml";
 	
@@ -74,7 +81,12 @@ public class TestDataGenerator {
 		
 		clearDB();
 		
+		final IFolderData folderData = new JdbcFolderData(DS);
+		final IBatchImporter batchImporter = new BatchJdbcImporter(DS, folderData, 500);
+		
 		DateTime timestamp = DateTime.now().minusDays(testSuiteCount);
+		
+		Folder folder = folderData.createFolder(folderPath);
 		
 		List<ReportedTestElement> testEntries = Lists.newArrayList();
 		
@@ -83,7 +95,7 @@ public class TestDataGenerator {
 			long testsInSuite = i + minTestsInSuite;
 			ReportedTestSuiteEntry tse = new ReportedTestSuiteEntry();
 			tse.setContainingFile(fileTemplate.replace("{$id}", String.valueOf(i)));
-			tse.setContainingFolder(folder);
+			tse.setContainingFolder(folder.getPath());
 			tse.setQualifiedName(qualifiedSuiteName);
 			tse.setStorageId(UUID.randomUUID());
 			tse.setTime(randomTimeDuration(testsInSuite));
@@ -139,7 +151,7 @@ public class TestDataGenerator {
 			
 		}
 		
-		new BatchJdbcImporter(DS, 500).doImport(testEntries.stream());
+		batchImporter.doImport(testEntries.stream());
 	}
 	
 	private String randomQName() {

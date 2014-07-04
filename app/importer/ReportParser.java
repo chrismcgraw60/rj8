@@ -20,8 +20,6 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
-import jdk.internal.org.xml.sax.XMLReader;
-
 import org.joda.time.DateTime;
 
 import com.google.common.base.Preconditions;
@@ -199,10 +197,10 @@ public class ReportParser {
 		}
 		
 		String fileName = reportFile.getName();
-		String folderName = reportFile.getParentFile().getName();
+//		String folderName = reportFile.getParentFile().getName();
 		
 		suiteEntry.setContainingFile(fileName);
-		suiteEntry.setContainingFolder(folderName);
+		suiteEntry.setContainingFolder(reportFile.getParentFile().toPath());
 	}
 
 	private static ReportedTestResultEntry parseTestCaseEntry(final StartElement testCaseElement, final XMLEventReader eventReader) 

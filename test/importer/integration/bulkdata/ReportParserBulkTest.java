@@ -1,6 +1,9 @@
 package importer.integration.bulkdata;
 
 import static org.junit.Assert.assertEquals;
+import folderManager.IFolderData;
+import folderManager.JdbcFolderData;
+import importer.IBatchImporter;
 import importer.ImportSource;
 import importer.ReportParser;
 import importer.integration.bulkdata.BulkTestReportGenerator.BulkDataInfo;
@@ -45,12 +48,15 @@ public class ReportParserBulkTest {
 	@Test
 	public void testParallelParse() throws Exception {
 		
+		final IFolderData folderData = new JdbcFolderData(DS);
+		final IBatchImporter batchImporter = new BatchJdbcImporter(DS, folderData, 1000);
+		
 		Integer actualImportedTestResultCount = new ForkJoinPool().submit( () -> {
 				Integer importedRowCount = 
 					bulkTestFilePaths()
 					.parallel()
 					.map(filePath -> new ReportParser().parse(filePath))
-					.map(testResults -> new BatchJdbcImporter(DS, 1000).doImport(testResults))
+					.map(testResults -> batchImporter.doImport(testResults))
 					.collect(Collectors.summingInt(i -> i));
 				
 				return importedRowCount;

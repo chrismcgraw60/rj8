@@ -1,5 +1,7 @@
 package importer;
 
+import java.nio.file.Path;
+
 import org.joda.time.DateTime;
 
 import com.google.common.base.Preconditions;
@@ -11,10 +13,11 @@ public class ReportedTestSuiteEntry extends ReportedTestElement {
 	
 	private Long testsRun;
 	private String fileName;
-	private String folderName;
+	private Path folder;
 	private DateTime timestamp;
 	private Long totalErrors;
 	private Long totalFailures;
+	
 	/*
 	 * We provide a default value here as it may not be defined on a JUnit Suite Element.
 	 */
@@ -56,20 +59,20 @@ public class ReportedTestSuiteEntry extends ReportedTestElement {
 	}
 	
 	/**
-	 * The name of the Folder containing this Suite's corresponding Junit Report file.
+	 * The Path of the Folder containing this Suite's corresponding Junit Report file.
 	 * @return This object.
 	 */
-	public String getContainingFolder() {
-		return this.folderName;
+	public Path getContainingFolder() {
+		return this.folder;
 	}
 	
 	/**
-	 * @param folderName The name of the Folder containing this Suite's corresponding Junit Report file.
+	 * @param folderName The Path of the Folder containing this Suite's corresponding Junit Report file.
 	 * @return This object.
 	 */
-	public ReportedTestSuiteEntry setContainingFolder(String folderName) {
-		Preconditions.checkNotNull(folderName, "folderName must not be null.");
-		this.folderName = folderName;
+	public ReportedTestSuiteEntry setContainingFolder(Path folder) {
+		Preconditions.checkNotNull(folder, "folder must not be null.");
+		this.folder = folder;
 		return this;
 	}
 
@@ -149,7 +152,7 @@ public class ReportedTestSuiteEntry extends ReportedTestElement {
 		super.validateState();
 		checkStateNotNull(this.testsRun, "testsRun was not set.");	
 		checkStateNotNull(this.fileName, "fileName was not set.");
-		checkStateNotNull(this.folderName, "folderName was not set.");
+		checkStateNotNull(this.folder, "folderName was not set.");
 		checkStateNotNull(this.timestamp, "timestamp was not set.");
 		checkStateNotNull(this.totalErrors, "totalErrors was not set.");
 		checkStateNotNull(this.totalFailures, "totalFailures was not set.");

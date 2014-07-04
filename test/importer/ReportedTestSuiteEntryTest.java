@@ -1,5 +1,6 @@
 package importer;
 
+import java.nio.file.Paths;
 import java.util.UUID;
 
 import org.junit.Rule;
@@ -24,7 +25,7 @@ public class ReportedTestSuiteEntryTest {
 		thrown.expectMessage("testsRun was not set.");
 		new ReportedTestSuiteEntry()
 			.setContainingFile("FILE")
-			.setContainingFolder("FOLDER")
+			.setContainingFolder(Paths.get("FOLDER"))
 			.setStorageId(UUID.randomUUID())
 			.setQualifiedName("")
 			.setTime("0.00")
@@ -63,7 +64,7 @@ public class ReportedTestSuiteEntryTest {
 		new ReportedTestSuiteEntry()
 			.setTestsRun(new Long(1))
 			.setContainingFile("FILE")
-			.setContainingFolder("FOLDER")
+			.setContainingFolder(Paths.get("FOLDER"))
 			.setStorageId(UUID.randomUUID())
 			.setQualifiedName("")
 			.setTime("0.00")

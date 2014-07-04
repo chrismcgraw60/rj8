@@ -34,6 +34,7 @@ public class H2DataSource {
 		try (Connection conn = ds.getConnection()){
 			conn.prepareStatement("DELETE FROM TESTSUITE").executeUpdate();
 			conn.prepareStatement("DELETE FROM TESTENTRY").executeUpdate();
+			conn.prepareStatement("DELETE FROM FOLDER").executeUpdate();
 		} catch (SQLException e) {
 			Throwables.propagate(e);
 		}

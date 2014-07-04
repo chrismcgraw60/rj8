@@ -2,6 +2,8 @@ package filewatch;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import folderManager.IFolderData;
+import folderManager.JdbcFolderData;
 import importer.IBatchImporter;
 import importer.ImportSource;
 import importer.events.ImportFailed;
@@ -216,7 +218,8 @@ public class ImportFilewatcherTest {
 	 */
 	private ImportFileWatcher initialiseWatcher() throws IOException {
 		final Path watchFolder = initialiseWatchFolder();
-		final IBatchImporter importer = new BatchJdbcImporter(DS, 1000);
+		final IFolderData fd = new JdbcFolderData(DS);
+		final IBatchImporter importer = new BatchJdbcImporter(DS, fd, 1000);
 		final ImportFileWatcher watcher = new ImportFileWatcher(watchFolder, importer);
 		return watcher;
 	}
