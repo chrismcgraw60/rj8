@@ -39,6 +39,10 @@ juaApp.directive('latestResults', ['$window', '$timeout', '$location', function(
         		for(var i=0; i<5; i++) {
         			var nextLatestResult = scope.rowDataResults[i];
         			
+        			if (!nextLatestResult) {
+        				break;
+        			}
+        			
         			nextLatestResult.rate = calculatePassRate(nextLatestResult);
         				
         			/*

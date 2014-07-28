@@ -96,7 +96,7 @@ juaApp.directive('testView', ['$window', '$timeout', '$location', function($wind
 	    				 * We need to consider multiple tests on the same day but this will
 	    				 * do for 1st cut.
 	    				 */
-		    			var date = normaliseDateTime(hItem.dt);
+		    			var date = normaliseDateTime(hItem.timeStamp);
 		    			var tStamp = toSeconds(date);		            	
 		            	
 		            	/*
@@ -135,6 +135,7 @@ juaApp.directive('testView', ['$window', '$timeout', '$location', function($wind
         	 */
         	var normaliseDateTime = function(dateTime) {
         		var date = new Date(dateTime);
+        		console.debug(date.toUTCString());
     			date.setHours(0);
     			date.setMinutes(0);
     			date.setSeconds(0);
