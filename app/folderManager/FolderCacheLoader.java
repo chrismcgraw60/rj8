@@ -2,6 +2,8 @@ package folderManager;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
@@ -16,42 +18,56 @@ import org.jooq.lambda.Unchecked;
 
 import query.JdbcQueryService;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.cache.CacheLoader;
 
 /**
- *
+ * Extends {@link CacheLoader} to provide an RDBMS backed loader for the in-memory Folder cache. 
  */
 class FolderCacheLoader extends CacheLoader<Path, Optional<Folder>> {
 	
 	private final DataSource ds;
 	
+	/**
+	 * @param ds Provides access to the RDBMS.
+	 */
 	public FolderCacheLoader(DataSource ds) {
+		Preconditions.checkNotNull(ds, "ds must not be null.");
+		
 		this.ds = ds;		
 	}		
 	
-	@Override
+	/**
+	 * Loads a Folder POJO representing the given {@link Path}.
+	 * The Folder is loaded from information in the {@link DataSource}.
+	 * 
+	 * @return A Folder wrapped as {@link Optional} or {@link Optional#empty()} if there is no
+	 * Folder data corresponding to the path in the database.
+	 */
 	public Optional<Folder> load(Path path) {
+		Preconditions.checkNotNull(path, "path must not be null.");
 		
 		String query = String.format(JdbcFolderData.loadFolderSQL, path.toString());
-		final ResultSet rs = new JdbcQueryService(this.ds).runQuery(query);
 		
-		if (!hasRows(rs)) { 
-			return Optional.empty(); 
+		ResultSet rs = null;
+		Optional<Folder> folderOpt = Optional.empty();
+				
+		try (Connection conn = ds.getConnection(); 
+				PreparedStatement q = conn.prepareStatement(query)){
+			
+			rs = q.executeQuery();
+			
+			if (hasRows(rs)) { 
+				Folder loadedFolder = fromRow(rs);
+				folderOpt = Optional.of(loadedFolder); 
+			}
+			
+		} catch (SQLException e) {
+			Throwables.propagate(e);
 		}
-		else { 
-			Folder loadedFolder = fromRow(rs);
-			return Optional.of(loadedFolder); 
-		}
-	}
-
-	private boolean hasRows(final ResultSet rs) {
-		boolean hasRows = false;
 		
-		try { hasRows = rs.first(); } 
-		catch (SQLException e) { Throwables.propagate(e); }
-		
-		return hasRows; 
+		return folderOpt;
 		
 	}
 	
@@ -64,6 +80,7 @@ class FolderCacheLoader extends CacheLoader<Path, Optional<Folder>> {
 	 */
 	@Override
 	public Map<Path, Optional<Folder>> loadAll(Iterable<? extends Path> keys) {
+		Preconditions.checkNotNull(keys, "keys must not be null.");
 		
 		final ResultSet rs = new JdbcQueryService(this.ds).runQuery(JdbcFolderData.loadAllFoldersSQL);
 		
@@ -74,6 +91,22 @@ class FolderCacheLoader extends CacheLoader<Path, Optional<Folder>> {
 		return loadedMap;
 	}
 	
+	/*
+	 * Returns true if the given ResultSet contains 1 or more rows. False otherwise.
+	 */
+	private boolean hasRows(final ResultSet rs) {
+		boolean hasRows = false;
+		
+		try { hasRows = rs.first(); } 
+		catch (SQLException e) { Throwables.propagate(e); }
+		
+		return hasRows; 
+		
+	}
+	
+	/*
+	 * Populates a Folder POJO from a database row.
+	 */
 	private Folder fromRow(ResultSet row) {
 		
 		Folder f = null;

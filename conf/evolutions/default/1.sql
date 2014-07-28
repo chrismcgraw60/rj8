@@ -7,7 +7,8 @@ CREATE TABLE Folder (
   createdOn		timestamp,
   updatedOn		timestamp,
   
-  CONSTRAINT folderPK PRIMARY KEY (id)
+  CONSTRAINT folderPK PRIMARY KEY (id),
+  CONSTRAINT uniqueFolderPath UNIQUE (path)
 );
 
 CREATE TABLE TestSuite (

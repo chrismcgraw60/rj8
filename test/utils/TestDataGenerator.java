@@ -185,8 +185,9 @@ public class TestDataGenerator {
 	}
 
 	private void clearDB() throws SQLException {
-		Connection conn = DS.getConnection();
-		PreparedStatement deleteTestSuitesStmt = conn.prepareStatement(deleteTestSuiteDataSQL);
-		deleteTestSuitesStmt.executeUpdate();
+		try (Connection conn = DS.getConnection();
+				PreparedStatement deleteTestSuitesStmt = conn.prepareStatement(deleteTestSuiteDataSQL);){
+			deleteTestSuitesStmt.executeUpdate();
+		}
 	}
 }

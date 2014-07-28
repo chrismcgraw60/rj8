@@ -23,3 +23,8 @@ activator-sbt*-shim.sbt
 /start-h2.sh~
 /setup-activator.sh~
 /refresh-eclipse.sh~
+/.classpath~
+/clientdb.xml
+/.metadata
+/RemoteSystemsTempFiles
+/db.h2.db

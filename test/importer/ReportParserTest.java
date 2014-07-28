@@ -34,7 +34,7 @@ public class ReportParserTest {
 		assertEquals("Expect 1 Test Suite Element", 1, testSuiteElements.size());
 		ReportedTestSuiteEntry suiteEntry = (ReportedTestSuiteEntry)testSuiteElements.get(0);
 		assertEquals("Suite has expected File Name.",  TestDataInfo.testDataFile, suiteEntry.getContainingFile());
-		assertEquals("Suite has expected Folder Name.",  TestDataInfo.testDataFolderName, suiteEntry.getContainingFolder());
+		assertEquals("Suite has expected Folder Path.",  TestDataInfo.getTestReportFolderPath(), suiteEntry.getContainingFolder().toString());
 		assertEquals("Suite has expected Time Stamp.",  TestDataInfo.testDataSuiteTimeStamp, suiteEntry.getTimestamp());
 		assertEquals("Suite has expected qualified Name.", "testdata.AllTests", suiteEntry.getQualifiedName());
 		assertEquals("Suite has expected Local Name.", "AllTests", suiteEntry.getLocalTestCaseName());

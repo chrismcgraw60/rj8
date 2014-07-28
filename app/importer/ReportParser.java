@@ -197,7 +197,6 @@ public class ReportParser {
 		}
 		
 		String fileName = reportFile.getName();
-//		String folderName = reportFile.getParentFile().getName();
 		
 		suiteEntry.setContainingFile(fileName);
 		suiteEntry.setContainingFolder(reportFile.getParentFile().toPath());
