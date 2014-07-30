@@ -1,6 +1,7 @@
 package folderManager;
 
 import java.nio.file.Path;
+import java.util.stream.Stream;
 
 /**
  * Defines API for persistent Folder data.
@@ -13,6 +14,12 @@ public interface IFolderData {
 	 * @return The {@link Folder} that represents the given {@link Path}.
 	 */
 	public Folder getFolder(Path folder);
+	
+	/**
+	 * Get all tracked Folders from the application's watch folder. 
+	 * @return A {@link Stream} of {@link Folder}s representing the app's tracked folders.
+	 */
+	public Stream<Folder> getAllFolders();
 	
 	/**
 	 * Get a Folder object from storage that represents a given File System path and optionally create the 

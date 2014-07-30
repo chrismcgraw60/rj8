@@ -149,7 +149,7 @@ public class ImportFileWatcher {
 			@Override
 			public Object call() throws Exception {
 				registerPathWithFileWatcher(rootFolder);
-				logger.debug("Started Import File Watcher. Root Folder: " + rootFolder);
+				logger.info("Started Import File Watcher. Root Folder: " + rootFolder);
 				while(true) {
 					try {
 						processWatchKey(watchService.take());
@@ -177,8 +177,8 @@ public class ImportFileWatcher {
 		final Path srcFileOrFolder = path.resolve(event.context());
 		try {
 			if (eventType == ENTRY_CREATE) { handleCreated(srcFileOrFolder); }
-			else if (eventType == ENTRY_MODIFY) { /* TODO */ logger.info("Processing Modified Folder: " + srcFileOrFolder); }
-			else if (eventType == ENTRY_DELETE) { /* TDOD */ logger.info("Deleted Folder: " + srcFileOrFolder); }
+			else if (eventType == ENTRY_MODIFY) { /* TODO */ logger.debug("Processing Modified Folder: " + srcFileOrFolder); }
+			else if (eventType == ENTRY_DELETE) { /* TODO */ logger.debug("Deleted Folder: " + srcFileOrFolder); }
 			else { unhandledWatchEvent(eventType, srcFileOrFolder); }
 		}
 		catch(Exception ex) {

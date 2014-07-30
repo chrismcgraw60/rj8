@@ -80,8 +80,13 @@ class FolderCacheLoader extends CacheLoader<Path, Optional<Folder>> {
 	 */
 	@Override
 	public Map<Path, Optional<Folder>> loadAll(Iterable<? extends Path> keys) {
-		Preconditions.checkNotNull(keys, "keys must not be null.");
-		
+		return loadAll();
+	}
+
+	/**
+	 * @return All Folders in storage mapped by Path.
+	 */
+	public Map<Path, Optional<Folder>> loadAll() {
 		final ResultSet rs = new JdbcQueryService(this.ds).runQuery(JdbcFolderData.loadAllFoldersSQL);
 		
 		Map<Path, Optional<Folder>> loadedMap = 

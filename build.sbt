@@ -14,7 +14,10 @@ libraryDependencies ++= Seq(
   "org.webjars" %% "webjars-play" % "2.2.0",
   "org.webjars" % "bootstrap" % "2.3.1",
   "org.hibernate" % "hibernate-entitymanager" % "4.3.5.Final",
-  "com.netflix.rxjava" % "rxjava-core" % "0.19.1")
+  "com.netflix.rxjava" % "rxjava-core" % "0.19.1",
+  "com.google.inject" % "guice" % "3.0",
+  "javax.inject" % "javax.inject" % "1"
+  )
 
 playJavaSettings
 

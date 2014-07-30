@@ -94,10 +94,10 @@ public class JdbcFolderDataTest {
 		Path path = Paths.get(workingFolderUrl.toURI());
 
 		final Path folderPath = path.resolve("folder");	
-		ExecutorService exec = Executors.newFixedThreadPool(20);
+		ExecutorService exec = Executors.newFixedThreadPool(500);
 		
 		List<Callable<Folder>> folderGets = Lists.newArrayList();
-		for (int i=0; i<1000; i++) { 
+		for (int i=0; i<100000; i++) { 
 			folderGets.add(() -> {return folderData.getFolder(folderPath, true);});
 		}
 						
