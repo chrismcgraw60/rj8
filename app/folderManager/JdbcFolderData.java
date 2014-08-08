@@ -5,10 +5,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
 
@@ -43,6 +44,9 @@ public class JdbcFolderData implements IFolderData {
 	private static final String insertFolderSQL = 
 		"insert into folder (path, status, createdOn, updatedOn) values (?, ?, ?, ?)";
 	
+	private static final String updateFolderSQL = 
+			"update folder set path=?, status=?, updatedOn=? where id=?";
+	
 	/*
 	 * Select all Folders SQL
 	 */
@@ -70,8 +74,6 @@ public class JdbcFolderData implements IFolderData {
 	 */
 	private final DataSource ds;
 	
-	private static Object REFRESH_LOCK = new Object();
-	
 	/**
 	 * @param ds JDBC data source for persistent storage.
 	 */
@@ -89,11 +91,12 @@ public class JdbcFolderData implements IFolderData {
 	}
 	
 	@Override
-	public Stream<Folder> getAllFolders() {
+	public List<Folder> getAllFolders() {
 		return allFoldersFromCache()
 			.stream()
 			.filter(folderOpt -> folderOpt.isPresent())
-			.map(folderOpt -> folderOpt.get());
+			.map(folderOpt -> folderOpt.get())
+			.collect(Collectors.toList());
 	}
 	
 	@Override
@@ -108,72 +111,11 @@ public class JdbcFolderData implements IFolderData {
 				folder.orElseThrow( () -> noFolderFailure(folderPath) );
 	}
 	
-//	@Override
-//	public synchronized Folder createFolder(Path path) {
-//		Preconditions.checkNotNull(path, "path must not be null.");
-//				
-//		boolean alreadyExistsInDB = false;
-//		
-//		/*
-//		 * Attempt INSERT of folder data. 
-//		 */
-//		try ( Connection conn = ds.getConnection();
-//				PreparedStatement insertFolderStmt = conn.prepareStatement(insertFolderSQL) ){
-//			
-//			final DateTime now = DateTime.now();
-//			final Folder f = new Folder(null, path, Folder.Status.Created, now, now);
-//			final Timestamp timeStamp = new Timestamp(now.getMillis());
-//			
-//			insertFolderStmt.setString		(1, f.getPath().toString());
-//			insertFolderStmt.setString		(2, f.getStatus().name());
-//			insertFolderStmt.setTimestamp	(3, timeStamp); //createdOn
-//			insertFolderStmt.setTimestamp	(4, timeStamp); //updatedOn
-//			
-//			int affectedRows = insertFolderStmt.executeUpdate();
-//			
-//			if (affectedRows == 0) throw new RuntimeException("Creating folder row failed, no rows affected.");
-//		}
-//		catch (SQLException sqlEx) {
-//			if (sqlEx.getSQLState().equals(uniqueConstraintErrorCode)) { 
-//				/* 
-//				 * A Row with the given path already exists so the INSERT has failed the DB uniqueness constraint on "path".
-//				 * This is OK. We'll use the existing stored folder data for the Path instead.
-//				 */
-//				alreadyExistsInDB = true;
-//			}
-//		}
-//
-//		if (!alreadyExistsInDB && folderCache.asMap().containsKey(path)) {
-//			/*
-//			 * The path wasn't represented in storage so we know we have just created it and now need to load 
-//			 * it into cache for subsequent reads. However, the Cache may have previously loaded an Optional.Empty 
-//			 * for the required folder so we need to flush that out or the real data won't be loaded.
-//			 */
-//			folderCache.invalidate(path);
-//		
-//		try {
-//			/*
-//			 * Load in the value that we know to be present in storage.
-//			 */
-//			return folderCache.get(path).orElseThrow( this::folderCreationFailure );
-//		}
-//		catch(Exception ex) {
-//			Throwables.propagate(ex);
-//		}
-//		
-//		/*
-//		 * Should not be possible to reach here.
-//		 */
-//		throw new RuntimeException();
-//	}
 	
 	@Override
-//	public synchronized Folder createFolder(Path path) {
 	public Folder createFolder(Path path) {
 		Preconditions.checkNotNull(path, "path must not be null.");
-		
-//		boolean alreadyExistsInDB = false;
-		
+				
 		/*
 		 * Attempt INSERT of folder data. 
 		 */
@@ -181,7 +123,7 @@ public class JdbcFolderData implements IFolderData {
 				PreparedStatement insertFolderStmt = conn.prepareStatement(insertFolderSQL) ){
 			
 			final DateTime now = DateTime.now();
-			final Folder f = new Folder(null, path, Folder.Status.Created, now, now);
+			final Folder f = new Folder(null, path, Folder.Status.Active, now, now);
 			final Timestamp timeStamp = new Timestamp(now.getMillis());
 			
 			insertFolderStmt.setString		(1, f.getPath().toString());
@@ -197,40 +139,60 @@ public class JdbcFolderData implements IFolderData {
 			if (sqlEx.getSQLState().equals(uniqueConstraintErrorCode)) { 
 				/* 
 				 * A Row with the given path already exists so the INSERT has failed the DB uniqueness constraint on "path".
-				 * This is OK. We'll use the existing stored folder data for the Path instead.
+				 * This is OK. We'll continue on to use the existing stored folder data for the Path instead.
 				 */
 			}
 		}
+		/*
+		 * We may have an Empty cache value for the given path. In that case we fall back to
+		 * refreshing the cache before returning the cache value.
+		 */
+		return folderCache.getUnchecked(path).orElseGet(() -> refreshCacheAndRetrieve(path));
+	}
+	
+	/* (non-Javadoc)
+	 * @see folderManager.IFolderData#updateFolder(folderManager.Folder)
+	 */
+	@Override
+	public Folder updateFolder(Folder folder) {
+		Preconditions.checkNotNull(folder, "folder must not be null.");
 		
-//		Optional<Folder> f = Optional.empty();
+		final DateTime now = DateTime.now();
+		final Timestamp timeStamp = new Timestamp(now.getMillis());
 		
-//		synchronized (REFRESH_LOCK) {
-//			f = folderCache.getUnchecked(path);
-//			if (!f.isPresent()) { 
-//				folderCache.refresh(path); 
-//				f = folderCache.getUnchecked(path);
-//			}
-//			
-//			f = f.orElseGet(() -> {
-//				folderCache.refresh(path); 
-//				return folderCache.getUnchecked(path);
-//			});
-//		}
-		
-		Optional<Folder> fo = Optional.empty();
-		
-		synchronized (REFRESH_LOCK) {
-
-			Folder f = folderCache.getUnchecked(path).orElseGet(() -> {
-							folderCache.refresh(path); 
-							return folderCache.getUnchecked(path).orElseThrow(this::folderCreationFailure );
-						});
+		/*
+		 * Attempt UPDATE of folder data. 
+		 */
+		try ( Connection conn = ds.getConnection();
+				PreparedStatement updateFolderStmt = conn.prepareStatement(updateFolderSQL) ){
 			
-			fo = Optional.of(f);
+			updateFolderStmt.setString		(1, folder.getPath().toString());
+			updateFolderStmt.setString		(2, folder.getStatus().name());
+			updateFolderStmt.setTimestamp	(3, timeStamp);
+			updateFolderStmt.setLong		(4, folder.getId());
+			
+			int affectedRows = updateFolderStmt.executeUpdate();
+			
+			if (affectedRows == 0) throw new RuntimeException("Updating folder row failed, no rows affected.");
+			
+			folderCache.invalidate(folder.getPath());
 		}
+		catch (Exception ex) {
+			Throwables.propagate(ex);
+		}
+		
+		return folder.updateTimestamp(now);
+	}
 
-		return fo.orElseThrow( this::folderCreationFailure );
-
+	/*
+	 * Refresh and return cache value. If we don't have a value in the Optional after
+	 * refresh, then we throw an Exception.
+	 * NOTE: Synchronization is required here to prevent concurrent threads reading the Empty
+	 * value for the path while the cache is in the process of refreshing the path from storage.
+	 */
+	private synchronized Folder refreshCacheAndRetrieve(Path path) {
+		folderCache.refresh(path); 
+		return folderCache.getUnchecked(path).orElseThrow(this::folderCreationFailure);
 	}
 	
 	/*

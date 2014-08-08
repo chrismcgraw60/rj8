@@ -2,25 +2,11 @@ package filewatch;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import folderManager.IFolderData;
-import folderManager.JdbcFolderData;
-import importer.IBatchImporter;
-import importer.ImportSource;
 import importer.events.ImportFailed;
 import importer.events.ImportStarted;
 import importer.events.ImportSuccessful;
-import importer.jdbc.BatchJdbcImporter;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -29,11 +15,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import testdata.TestDataInfo;
+import utils.FolderWatchUtils;
 import utils.H2DataSource;
-import utils.TestProperties;
 
-import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 import com.jolbox.bonecp.BoneCPDataSource;
 
@@ -45,15 +29,17 @@ import com.jolbox.bonecp.BoneCPDataSource;
  * <ul>
  */
 public class ImportFilewatcherTest {
-	
-	private static final String rootFolderName = TestProperties.INSTANCE.getFileWatchRootFolder();
-	
+		
 	private static BoneCPDataSource DS = null;
+	
+	private static FolderWatchUtils folderUtils = null;
 	
 	@BeforeClass
 	public static void setUp() throws Exception {
 		DS = H2DataSource.create();
 		H2DataSource.clear(DS);
+		
+		folderUtils = new FolderWatchUtils(DS);
 	}
 	
 	/**
@@ -63,7 +49,7 @@ public class ImportFilewatcherTest {
 	@Test
 	public void testBulkFileCreation() throws Exception {
 
-		final ImportFileWatcher watcher = initialiseWatcher();
+		final ImportFileWatcher watcher = folderUtils.initialiseWatcher();
 		
 		/*
 		 *  Watcher runs async so we'll use the latch to control the test execution
@@ -109,7 +95,7 @@ public class ImportFilewatcherTest {
 		 */
 		watcher.start();	
 		final Set<Path> expectedFiles = 
-			bulkCreationCopyTestFilesTo(watcher.getWatchFolder(), SUB_FOLDER_COUNT, TEST_FILE_COUNT);
+			folderUtils.bulkCreationCopyTestFilesTo(watcher.getWatchFolder(), 1, SUB_FOLDER_COUNT, TEST_FILE_COUNT);
 		
 		assertTrue("Should finish in 10s.", latch.await(10, TimeUnit.SECONDS));
 		assertEquals(expectedFiles, importSuccessfulOnPaths);
@@ -127,7 +113,7 @@ public class ImportFilewatcherTest {
 	@Test
 	public void testFileCreation_UnknownFormat() throws Exception {
 		
-		final ImportFileWatcher watcher = initialiseWatcher();
+		final ImportFileWatcher watcher = folderUtils.initialiseWatcher();
 		/*
 		 * We expect 3 events before continuing the test's thread.
 		 */
@@ -168,8 +154,8 @@ public class ImportFilewatcherTest {
 		
 		watcher.start();
 		
-		final Set<Path> expectedFails = copyMalformedTestFileTo(watcher.getWatchFolder());
-		final Set<Path> expectedSucesses = bulkCreationCopyTestFilesTo(watcher.getWatchFolder(), 1, 2);
+		final Set<Path> expectedFails = folderUtils.copyMalformedTestFileTo(watcher.getWatchFolder());
+		final Set<Path> expectedSucesses = folderUtils.bulkCreationCopyTestFilesTo(watcher.getWatchFolder(), 1, 1, 2);
 		
 		assertTrue("Should finish in 5s.", latch.await(5, TimeUnit.SECONDS));
 		assertEquals(expectedFails, pathsWhereImportSuccessful);
@@ -213,155 +199,4 @@ public class ImportFilewatcherTest {
 //		watcher.stop();
 //	}
 
-	/*
-	 * Prepares a new ImportFileWatcher instance for testing.
-	 */
-	private ImportFileWatcher initialiseWatcher() throws IOException {
-		final Path watchFolder = initialiseWatchFolder();
-		final IFolderData fd = new JdbcFolderData(DS);
-		final IBatchImporter importer = new BatchJdbcImporter(DS, fd, 1000);
-		final ImportFileWatcher watcher = new ImportFileWatcher(watchFolder, importer);
-		return watcher;
-	}
-	
-	/*
-	 * Prepares the watch folder for use in a given test.
-	 */
-	private Path initialiseWatchFolder() throws IOException {
-		final Path watchFolder = getWatchFolderPath();	
-		Files.list(watchFolder).forEach(fileOrFolderToDelete -> removeRecursive(fileOrFolderToDelete));
-		return watchFolder;
-	}
-	
-	/*
-	 * Performs a creation of a folder structure under the watch folder root.
-	 * Intended to simulate a bulk copy or creation that is expected to be 
-	 * successfully imported.
-	 * 
-	 * Returns a Set of all of the import File paths to be used for verification.
-	 */
-	private Set<Path> bulkCreationCopyTestFilesTo(Path watchFolderPath, int folderCount, int filesPerFolder) throws IOException {
-		final Set<Path> paths = Sets.newHashSet();
-		for (int i=1; i<=folderCount; i++) {
-			Path subFolder = watchFolderPath.resolve(folderName(i));
-			Files.createDirectory(subFolder);
-			for (int j=1; j<=filesPerFolder; j++) {
-				Path subFolderTestFile = subFolder.resolve(fileName(j));
-				copyTestFileTo(subFolderTestFile);
-				paths.add(subFolderTestFile);
-			}
-		}
-		return paths;
-	}
-	
-	private Set<Path> copyMalformedTestFileTo(Path watchFolderPath) throws IOException {
-		final Set<Path> paths = Sets.newHashSet();
-		Path subFolder = watchFolderPath.resolve("containsMalformedFile");
-		Files.createDirectory(subFolder);
-		Path subFolderTestFile = subFolder.resolve("malformedFile.xml");
-		Path testReportFile = Paths.get(TestDataInfo.getMalformedReportFilePath());
-		uncheckedFileCopy(subFolderTestFile, testReportFile);
-		paths.add(subFolderTestFile);
-		return paths;
-	}
-
-	/*
-	 * Apply template fir test file names.
-	 */
-	private String fileName(int j) {
-		return String.format("test-report-%05d.xml", j);
-	}
-
-	/*
-	 * Apply template for test folder names.
-	 */
-	private String folderName(int i) {
-		return String.format("Sub%05d", i);
-	}
-
-	/*
-	 * Re-throw unchecked wrapper for IOException on file traversal
-	 */
-	private void removeRecursive(Path path) {
-	    try {
-			Files.walkFileTree(path, new Deleter());
-		} catch (IOException e) {
-			Throwables.propagate(e);
-		}
-	}
-	
-	/*
-	 * Copy the test file template to a given target path.
-	 * We use this copy to simulate creation of a new test report file. 
-	 */
-	private void copyTestFileTo(Path targetPath) {
-		ImportSource is = TestDataInfo.getImportSource();
-		
-		is.computePaths().findFirst().ifPresent(s -> {
-			Path testReportFile = Paths.get(s);
-			uncheckedFileCopy(targetPath, testReportFile);
-		});
-	}
-
-	/*
-	 * Re-throw unchecked wrapper for IOException on file copy
-	 */
-	private void uncheckedFileCopy(Path targetPath, Path testReportFile) {
-		try { Files.copy(testReportFile, targetPath); } 
-		catch (IOException e) { Throwables.propagate(e); }
-	}
-	
-	/*
-	 * Compute and return the watch folder path to be used in the test.
-	 */
-	private Path getWatchFolderPath() {
-		URL workingFolderUrl = ImportFileWatcher.class.getResource("../.");
-		File workingFolder = new File(workingFolderUrl.getFile()).getParentFile().getAbsoluteFile();
-		File targetFolder = new File(workingFolder.getAbsolutePath() + File.separatorChar + rootFolderName);
-		
-		if (!targetFolder.exists()) {  targetFolder.mkdir();  }
-		
-		return targetFolder.toPath();
-	}
-	
-	/**
-	 * Helper class to Delete contents of the Folder Tree under test.
-	 */
-	private static class Deleter extends SimpleFileVisitor<Path> {
-		/* (non-Javadoc)
-		 * @see java.nio.file.SimpleFileVisitor#visitFile(java.lang.Object, java.nio.file.attribute.BasicFileAttributes)
-		 */
-		@Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-            Files.delete(file);
-            return FileVisitResult.CONTINUE;
-        }
-
-        /* (non-Javadoc)
-         * @see java.nio.file.SimpleFileVisitor#visitFileFailed(java.lang.Object, java.io.IOException)
-         */
-        @Override
-        public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-            /* Try to delete the file anyway, even if its attributes could not be read, since 
-        	 * delete-only access is theoretically possible.
-        	 */
-        	try { Files.delete(file); }
-        	catch(NoSuchFileException ex) { /* Ignore and continue. */ }
-            return FileVisitResult.CONTINUE;
-        }
-
-        /* (non-Javadoc)
-         * @see java.nio.file.SimpleFileVisitor#postVisitDirectory(java.lang.Object, java.io.IOException)
-         */
-        @Override
-        public FileVisitResult postVisitDirectory(Path dir, IOException ioex) throws IOException {
-            if (ioex == null) {
-                Files.delete(dir);
-                return FileVisitResult.CONTINUE;
-            }
-            else { /* Directory iteration failed. Propagate exception. */ throw ioex; }
-        }
-	}
-
-	
 }

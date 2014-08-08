@@ -3,6 +3,7 @@
 var juaApp = angular.module('juaApp', [
   'ngRoute',
   'querySocketServices',
+  'folderServices',
   'dashboardControllers',
   'analyseControllers',
   'manageControllers',

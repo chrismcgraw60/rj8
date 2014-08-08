@@ -4,6 +4,7 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
+import events.FolderEvents;
 import folderManager.FileSystemEvent;
 import importer.IBatchImporter;
 import importer.ReportParser;
@@ -91,6 +92,7 @@ public class ImportFileWatcher {
 	 * are emitted by this ImportFileWatcher object.
 	 */
 	public Observable<FileSystemEvent> events() {
+		
 		return Observable.create( 
 				new OnSubscribe<FileSystemEvent>() {
 					@Override
@@ -252,9 +254,8 @@ public class ImportFileWatcher {
 
 	private void handleCreatedFolder(final Path folder) {
 		logger.debug("New Folder Added to Import tree: " + folder);
-		/*
-		 * TODO: File system event for file creation
-		 */
+		
+		subscribers.forEach(s -> s.onNext(FolderEvents.created(folder)));
 		registerPathWithFileWatcher(folder);
 		traverseFolder(folder).forEach(fileInFolder -> importFromFile(fileInFolder));
 	}

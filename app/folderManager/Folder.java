@@ -1,10 +1,14 @@
 package folderManager;
 
+import java.io.StringWriter;
 import java.nio.file.Path;
 
 import org.joda.time.DateTime;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 
 /**
  * POJO to model a folder. The folder in this context will be a parent folder for a given JUnit report.
@@ -37,6 +41,26 @@ public class Folder {
 		this.status = status;
 		this.created = created;
 		this.updated = updated;
+	}
+	
+	/**
+	 * Helper method that will return a new {@link Folder} instance that is a copy of this Folder with
+	 * the exception of its status field (which will be set to the given status). 
+	 * @param newStatus The new status for the Folder.
+	 * @return A copy of this folder with updated status.
+	 */
+	public Folder updateStatus(Status newStatus) {
+		return new Folder(this.getId(), this.getPath(), newStatus, this.getCreated(), this.getUpdated());
+	}
+	
+	/**
+	 * Helper method that will return a new {@link Folder} instance that is a copy of this Folder with
+	 * the exception of its updated field (which will be set to the given status). 
+	 * @param newStatus The new updated time stamp for the Folder.
+	 * @return A copy of this folder with updated time stamp.
+	 */
+	public Folder updateTimestamp(DateTime timestamp) {
+		return new Folder(this.getId(), this.getPath(), this.getStatus(), this.getCreated(), timestamp);
 	}
 	
 	/**
@@ -77,17 +101,31 @@ public class Folder {
 	
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
+		return toJSON(this);
+	}
+	
+	public static String toJSON(Folder folder) {
+		final StringWriter sw = new StringWriter();
 		
-		sb.append("Folder: {\n")
-			.append("\t path: ").append(path).append("\n")
-			.append("\t id: ").append(id).append("\n")
-			.append("\t status: ").append(status).append("\n")
-			.append("\t created: ").append(created).append("\n")
-			.append("\t updated: ").append(updated).append("\n")
-			.append("}");
+		try {
 		
-		return sb.toString();
+			final JsonGenerator jg = new JsonFactory().createGenerator(sw).useDefaultPrettyPrinter();
+			jg.writeStartObject();
+			
+				jg.writeStringField("id", folder.getId().toString());
+				jg.writeStringField("path", folder.getPath().toString());
+				jg.writeStringField("status", folder.getStatus().toString());
+				jg.writeStringField("created", folder.getCreated().toString());
+				jg.writeStringField("updated", folder.getUpdated().toString());
+				
+			jg.writeEndObject();
+			jg.close();
+		}
+		catch(Exception ex) {
+			Throwables.propagate(ex);
+		}
+		
+		return sw.toString();
 	}
 
 	/**
@@ -95,6 +133,6 @@ public class Folder {
 	 * We currently only track that a Folder was created. 
 	 */
 	public enum Status {
-		Created
+		Active, ActiveWithErrors, Importing
 	}
 }

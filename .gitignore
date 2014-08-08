@@ -28,3 +28,4 @@ activator-sbt*-shim.sbt
 /.metadata
 /RemoteSystemsTempFiles
 /db.h2.db
+/watch

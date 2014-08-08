@@ -1,5 +1,7 @@
 package folderManager;
 
+import static java.util.stream.Collectors.toMap;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -8,7 +10,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
 
@@ -91,7 +92,7 @@ class FolderCacheLoader extends CacheLoader<Path, Optional<Folder>> {
 		
 		Map<Path, Optional<Folder>> loadedMap = 
 			SQL.stream(rs, Unchecked.function(row -> { return fromRow(row); }))
-				.collect(Collectors.toMap(Folder::getPath , f -> Optional.of(f)));
+				.collect(toMap(Folder::getPath , f -> Optional.of(f)));
 		
 		return loadedMap;
 	}

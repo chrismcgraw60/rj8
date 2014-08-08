@@ -3,7 +3,7 @@
 	<head>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		
-		<title>JUnit Analyser</title>
+		<title>DAFT</title>
 		
 		<link href="@routes.Assets.at("styles/jua.css")" rel="stylesheet" media="screen">
 		<link href="@routes.Assets.at("styles/bootstrap.min.css")" rel="stylesheet" media="screen">
@@ -21,7 +21,10 @@
 		
 		<!-- Application JS -->
 		<script src="@routes.Assets.at("scripts/juaApp.js")"></script>
+		
 		<script src="@routes.Assets.at("scripts/services/querySocketServices.js")"></script>
+		<script src="@routes.Assets.at("scripts/services/folderServices.js")"></script>
+		
 		<script src="@routes.Assets.at("scripts/controllers/manageCtrl.js")"></script>
 		<script src="@routes.Assets.at("scripts/controllers/analyseCtrl.js")"></script>
 		<script src="@routes.Assets.at("scripts/controllers/dashboardCtrl.js")"></script>
@@ -37,6 +40,7 @@
 		<script src="@routes.Assets.at("scripts/directives/compareTestsViewDirective.js")"></script>
 		<script src="@routes.Assets.at("scripts/directives/testRunSummarySliderDirective.js")"></script>
 		<script src="@routes.Assets.at("scripts/directives/compareTestSuiteDirective.js")"></script>
+		<script src="@routes.Assets.at("scripts/directives/manageFoldersDirective.js")"></script>
 		
 	</head>
 
@@ -51,7 +55,7 @@
 							class="icon-bar"></span> <span class="icon-bar"></span> <span
 							class="icon-bar"></span>
 					</button>
-					<a class="navbar-brand" href="#dashboard">Junit Analyser</a>
+					<a class="navbar-brand" href="#dashboard">DAFT</a>
 				</div>
 				<div class="collapse navbar-collapse">
 					<ul class="nav navbar-nav">

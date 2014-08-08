@@ -1,14 +1,12 @@
 package controllers;
 
 import java.sql.ResultSet;
-import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.sql.DataSource;
 
 import play.db.DB;
-import play.libs.F;
 import play.mvc.Controller;
 import play.mvc.Result;
 import play.mvc.WebSocket;
@@ -17,8 +15,10 @@ import query.JsonResulSet;
 import folderManager.Folder;
 import folderManager.FolderManager;
 
-import static java.util.stream.Collectors.toList;
-
+/**
+ * Web Entry point for appplication.
+ * All REST endpoints are defined here.
+ */
 @Singleton
 public class Application extends Controller {
 	
@@ -29,9 +29,22 @@ public class Application extends Controller {
     	return ok(views.html.index.render());
     }
     
-    public F.Promise<Result> folders() {
-    	List<Folder> folders = folderManager.folders().collect(toList());
-        return F.Promise.promise(() -> ok(folders.toString()));
+    /**
+     * @return A Stream of Folder objects that represent the output of {@link FolderManager#folderEventStream()}.
+     */
+    public WebSocket<String> folders() {
+    	
+    	WebSocket<String> ws = new WebSocket<String>() {
+            public void onReady(final In<String> in, final Out<String> out) {
+            	in.onMessage(msg -> {
+            		folderManager.folderEventStream()
+            			.map(Folder::toJSON)
+            			.subscribe(out::write);
+            	});
+            }
+        };
+        
+        return ws;
     }
     
     public WebSocket<String> query() {
@@ -40,10 +53,7 @@ public class Application extends Controller {
             public void onReady(final In<String> in, final Out<String> out) {
             	in.onMessage(sql -> {
             		
-	            	DataSource ds =  DB.getDataSource();
-	        		ResultSet rs = new JdbcQueryService(ds).runQuery(sql);
-	        		JsonResulSet jsonRs = JsonResulSet.initialiseFrom(rs);
-	        		
+	            	JsonResulSet jsonRs = runQuery(sql);
 	        		out.write(jsonRs.getMetadata());
 	        		jsonRs.rowsAsStream().forEach(out::write);
 	        		
@@ -59,4 +69,11 @@ public class Application extends Controller {
             }
         };
     }
+    
+    private JsonResulSet runQuery(String sql) {
+		DataSource ds =  DB.getDataSource();
+		ResultSet rs = new JdbcQueryService(ds).runQuery(sql);
+		JsonResulSet jsonRs = JsonResulSet.initialiseFrom(rs);
+		return jsonRs;
+	}
 }

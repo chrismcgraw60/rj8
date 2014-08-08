@@ -3,10 +3,10 @@
 # ~~~~
 
 GET			/                              	@controllers.Application.index()
-GET			/folders						@controllers.Application.folders()
 
 # WebSocket
-GET        	/query                         	@controllers.Application.query()							
+GET        	/query                         	@controllers.Application.query()
+GET			/folders						@controllers.Application.folders()							
 
 # Map static resources from the /public folder to the /assets URL path
 GET        	/assets/*file                  	controllers.Assets.at(path="/public", file)

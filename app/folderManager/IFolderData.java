@@ -1,7 +1,7 @@
 package folderManager;
 
 import java.nio.file.Path;
-import java.util.stream.Stream;
+import java.util.List;
 
 /**
  * Defines API for persistent Folder data.
@@ -17,9 +17,9 @@ public interface IFolderData {
 	
 	/**
 	 * Get all tracked Folders from the application's watch folder. 
-	 * @return A {@link Stream} of {@link Folder}s representing the app's tracked folders.
+	 * @return A {@link List} of {@link Folder}s representing the app's tracked folders.
 	 */
-	public Stream<Folder> getAllFolders();
+	public List<Folder> getAllFolders();
 	
 	/**
 	 * Get a Folder object from storage that represents a given File System path and optionally create the 
@@ -37,5 +37,14 @@ public interface IFolderData {
 	 * @return {@link Folder} object that represents the created Folder.
 	 */
 	public Folder createFolder(Path path);
+	
+	/**
+	 * Updates a given {@link Folder} in storage. The Folder's 'updated' time stamp
+	 * field is updated to reflect the time of the update.
+	 * @param folder The Folder to be updated.
+	 * @return The Folder with up-to-date 'updated' time stamp field.
+	 * @see {@link Folder#getUpdated()}
+	 */
+	public Folder updateFolder(Folder folder);
 
 }

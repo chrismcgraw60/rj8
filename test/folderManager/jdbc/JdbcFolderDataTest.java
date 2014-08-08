@@ -28,6 +28,7 @@ import com.google.common.collect.Lists;
 import com.jolbox.bonecp.BoneCPDataSource;
 
 import folderManager.Folder;
+import folderManager.Folder.Status;
 import folderManager.IFolderData;
 import folderManager.JdbcFolderData;
 
@@ -94,10 +95,10 @@ public class JdbcFolderDataTest {
 		Path path = Paths.get(workingFolderUrl.toURI());
 
 		final Path folderPath = path.resolve("folder");	
-		ExecutorService exec = Executors.newFixedThreadPool(500);
+		ExecutorService exec = Executors.newFixedThreadPool(20);
 		
 		List<Callable<Folder>> folderGets = Lists.newArrayList();
-		for (int i=0; i<100000; i++) { 
+		for (int i=0; i<1000; i++) { 
 			folderGets.add(() -> {return folderData.getFolder(folderPath, true);});
 		}
 						
@@ -109,6 +110,42 @@ public class JdbcFolderDataTest {
 		assertSingleFolderInFolderData(folderPath);
 		
 		exec.shutdown();
+	}
+	
+	/**
+	 * Verify Folder update on storage.
+	 */
+	@Test
+	public void testUpdateFolder() throws Exception {
+		IFolderData folderData = new JdbcFolderData(DS);
+		URL workingFolderUrl = this.getClass().getResource(".");
+		Path path = Paths.get(workingFolderUrl.toURI());
+		
+		/*
+		 * Create a folder storage.
+		 */
+		Folder currentFolder = folderData.createFolder(path);
+		
+		/*
+		 * Update the folder status in storage and verify it return expected Folder state.
+		 */
+		Folder updatedFolder = folderData.updateFolder(currentFolder.updateStatus(Status.Importing));
+		assertFalse("Status should have changed.", currentFolder.getStatus().equals(updatedFolder.getStatus()));
+		assertTrue("Updated timestamp should be later than current timestamp.", updatedFolder.getUpdated().isAfter(currentFolder.getUpdated().getMillis()));
+		assertEquals("Status should be Importing.", Status.Importing,  updatedFolder.getStatus());
+		assertEquals("ID should not change.", currentFolder.getId(),  updatedFolder.getId());
+		assertEquals("Path should not change.", currentFolder.getPath(),  updatedFolder.getPath());
+		assertEquals("Created Timestamp should not change.", currentFolder.getCreated(),  updatedFolder.getCreated());
+		
+		/*
+		 * Get the Folder from storage and verify it matches what we submitted to storage.
+		 */
+		Folder updatedFolderFromStorage = folderData.getFolder(updatedFolder.getPath());
+		assertEquals("Storage ID should not match submitted ID.", updatedFolder.getId(),  updatedFolderFromStorage.getId());
+		assertEquals("Storage Path should not match submitted Path.", updatedFolder.getPath(),  updatedFolderFromStorage.getPath());
+		assertEquals("Storage Status should not match submitted Status.", updatedFolder.getStatus(),  updatedFolderFromStorage.getStatus());
+		assertEquals("Storage Created Timestamp should not match submitted Created Timestamp.", updatedFolder.getCreated(),  updatedFolderFromStorage.getCreated());
+		assertEquals("Storage Updated Timestamp should not match submitted Updated Timestamp.", updatedFolder.getUpdated(),  updatedFolderFromStorage.getUpdated());
 	}
 	
 	private void assertSingleFolderInFolderData(Path folderPath) {

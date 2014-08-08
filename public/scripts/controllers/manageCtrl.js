@@ -1,10 +1,29 @@
 
 var manageControllers = angular.module('manageControllers', []);
 
-manageControllers.controller('ManageCtrl', ['$scope',
+manageControllers.controller('ManageCtrl', ['$scope', 'folderManagerService',
 
-  function($scope) {
+  function($scope, folderManagerService) {
 
-	$scope.manageData = {reports: ["r1", "r2", "r3"] };
+	/*
+	 * Wires up a submitted data handler callback to the folder feed provided by
+	 * the folderManagerService (see folderServices.js).
+	 */
+	$scope.getFolderData = function(dataRowHandler) {
+	
+		return folderManagerService.folderFeed({
+			
+			onFolderEventData: function(folderData) {
+				/*
+				 * Type the ID as a number.
+				 */
+				folderData.id = +(folderData.id);
+            	
+				$scope.$apply( new function() {
+					dataRowHandler(folderData);
+				});
+			}
+		});
+	};
 	
   }]);
